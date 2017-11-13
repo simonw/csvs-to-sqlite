@@ -1,6 +1,6 @@
 # csvs-to-sqlite
 
-<img src="https://img.shields.io/pypi/v/csvs-to-sqlite.svg" alt="latest release" />
+[![PyPI](https://img.shields.io/pypi/v/csvs-to-sqlite.svg)](https://pypi.python.org/pypi/csvs-to-sqlite)
 
 Convert CSV files into a SQLite database
 
