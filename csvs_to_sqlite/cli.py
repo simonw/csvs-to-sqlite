@@ -1,5 +1,7 @@
+from __future__ import absolute_import
+
 import click
-from utils import (
+from .utils import (
     LoadCsvError,
     csvs_from_paths,
     load_csv,
@@ -40,7 +42,7 @@ def cli(paths, dbname):
         try:
             df = load_csv(path)
             df.to_sql(name, conn)
-        except LoadCsvError, e:
+        except LoadCsvError as e:
             click.echo('Could not load {}: {}'.format(
                 path, e
             ), err=True)

@@ -13,7 +13,7 @@ def load_csv(filepath, encodings_to_try=('utf8', 'latin-1')):
             return pd.DataFrame.from_csv(filepath, encoding=encoding)
         except UnicodeDecodeError:
             continue
-        except pd.errors.ParserError, e:
+        except pd.errors.ParserError as e:
             raise LoadCsvError(e)
     # If we get here, we failed
     raise LoadCsvError('All encodings failed')
