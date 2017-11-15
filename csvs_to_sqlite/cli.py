@@ -18,7 +18,8 @@ import sqlite3
     required=True,
 )
 @click.argument('dbname', nargs=1)
-def cli(paths, dbname):
+@click.option('--replace-tables', is_flag=True, help='Replace tables if they already exist')
+def cli(paths, dbname, replace_tables):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -31,22 +32,29 @@ def cli(paths, dbname):
     if '.' not in dbname:
         dbname += '.db'
 
-    if os.path.exists(dbname):
-        raise click.BadParameter(
-            '{} already exists!'.format(dbname)
-        )
+    db_exists = os.path.exists(dbname)
 
     conn = sqlite3.connect(dbname)
     csvs = csvs_from_paths(paths)
     for name, path in csvs.items():
         try:
             df = load_csv(path)
-            df.to_sql(name, conn)
+            df.to_sql(
+                name,
+                conn,
+                if_exists='replace' if replace_tables else 'fail'
+            )
         except LoadCsvError as e:
             click.echo('Could not load {}: {}'.format(
                 path, e
             ), err=True)
     conn.close()
-    click.echo('Created {} from {} csv file{}'.format(
-        dbname, len(csvs), '' if len(csvs) == 1 else 's'
-    ))
+
+    if db_exists:
+        click.echo('Added {} CSV file{} to {}'.format(
+            len(csvs), '' if len(csvs) == 1 else 's', dbname
+        ))
+    else:
+        click.echo('Created {} from {} CSV file{}'.format(
+            dbname, len(csvs), '' if len(csvs) == 1 else 's'
+        ))

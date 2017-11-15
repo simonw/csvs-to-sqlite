@@ -29,3 +29,15 @@ search those directories for CSV files and create tables for each one.
 ## Installation
 
     pip install csvs-to-sqlite
+
+## csvs-to-sqlite --help
+
+    Usage: csvs-to-sqlite [OPTIONS] PATHS... DBNAME
+
+      PATHS: paths to individual .csv files or to directories containing .csvs
+
+      DBNAME: name of the SQLite database file to create
+
+    Options:
+      --replace-tables  Replace tables if they already exist
+      --help            Show this message and exit.

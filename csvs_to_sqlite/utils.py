@@ -8,15 +8,18 @@ class LoadCsvError(Exception):
 
 
 def load_csv(filepath, encodings_to_try=('utf8', 'latin-1')):
-    for encoding in encodings_to_try:
-        try:
-            return pd.DataFrame.from_csv(filepath, encoding=encoding)
-        except UnicodeDecodeError:
-            continue
-        except pd.errors.ParserError as e:
-            raise LoadCsvError(e)
-    # If we get here, we failed
-    raise LoadCsvError('All encodings failed')
+    try:
+        for encoding in encodings_to_try:
+            try:
+                return pd.DataFrame.from_csv(filepath, encoding=encoding)
+            except UnicodeDecodeError:
+                continue
+            except pd.errors.ParserError as e:
+                raise LoadCsvError(e)
+        # If we get here, we failed
+        raise LoadCsvError('All encodings failed')
+    except Exception as e:
+        raise LoadCsvError(e)
 
 
 def csvs_from_paths(paths):
