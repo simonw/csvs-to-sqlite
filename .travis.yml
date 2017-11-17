@@ -1,0 +1,9 @@
+nguage: python
+
+python:
+  - 3.6
+  - 2.7
+
+script:
+  - python setup.py test
+
