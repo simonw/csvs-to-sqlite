@@ -54,7 +54,7 @@ The format is as follows:
 If you just specify the column name e.g. `-c office`, the following table will
 be created:
 
-    CREATE TABLE "party" (
+    CREATE TABLE "office" (
         "id" INTEGER PRIMARY KEY,
         "value" TEXT
     );
