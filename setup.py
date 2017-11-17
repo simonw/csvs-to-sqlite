@@ -4,12 +4,16 @@ setup(
     name='csvs_to_sqlite',
     description='Convert CSV files into a SQLite database',
     author='Simon Willison',
-    version='0.2',
+    version='0.3',
     license='Apache License, Version 2.0',
     packages=find_packages(),
     install_requires=[
         'click==6.7',
         'pandas==0.20.3',
+    ],
+    setup_requires=['pytest-runner'],
+    tests_require=[
+        'pytest==3.2.3',
     ],
     entry_points='''
         [console_scripts]
