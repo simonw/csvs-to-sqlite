@@ -1,6 +1,7 @@
 # csvs-to-sqlite
 
 [![PyPI](https://img.shields.io/pypi/v/csvs-to-sqlite.svg)](https://pypi.python.org/pypi/csvs-to-sqlite)
+[![Travis CI](https://travis-ci.org/simonw/csvs-to-sqlite.svg?branch=master)](https://travis-ci.org/simonw/csvs-to-sqlite)
 
 Convert CSV files into a SQLite database
 
@@ -26,6 +27,65 @@ search those directories for CSV files and create tables for each one.
 
     csvs-to-sqlite ~/path/to/directory all-my-csvs.db
 
+## Refactoring columns into separate lookup tables
+
+Let's say you have a CSV file that looks like this:
+
+    county,precinct,office,district,party,candidate,votes
+    Clark,1,President,,REP,John R. Kasich,5
+    Clark,2,President,,REP,John R. Kasich,0
+    Clark,3,President,,REP,John R. Kasich,7
+
+([Real example taken from the Open Elections project](https://github.com/openelections/openelections-data-sd/blob/master/2016/20160607__sd__primary__clark__precinct.csv))
+
+You can now convert selected columns into separate lookup tables using the new
+`--extract-`column option (shortname: `-c`) - for example:
+
+    csvs-to-sqlite openelections-data-*/*.csv \
+        -c county:County:name \
+        -c precinct:Precinct:name \
+        -c office -c district -c party -c candidate \
+        openelections.db
+
+The format is as follows:
+
+    column_name:optional_table_name:optional_table_value_column_name
+
+If you just specify the column name e.g. `-c office`, the following table will
+be created:
+
+    CREATE TABLE "party" (
+        "id" INTEGER PRIMARY KEY,
+        "value" TEXT
+    );
+
+If you specify all three options, e.g. `-c precinct:Precinct:name` the table
+will look like this:
+
+    CREATE TABLE "Precinct" (
+        "id" INTEGER PRIMARY KEY,
+        "name" TEXT
+    );
+
+The original tables will be created like this:
+
+    CREATE TABLE "ca__primary__san_francisco__precinct" (
+        "county" INTEGER,
+        "precinct" INTEGER,
+        "office" INTEGER,
+        "district" INTEGER,
+        "party" INTEGER,
+        "candidate" INTEGER,
+        "votes" INTEGER,
+        FOREIGN KEY (county) REFERENCES County(id),
+        FOREIGN KEY (party) REFERENCES party(id),
+        FOREIGN KEY (precinct) REFERENCES Precinct(id),
+        FOREIGN KEY (office) REFERENCES office(id),
+        FOREIGN KEY (candidate) REFERENCES candidate(id)
+    );
+
+They will be populated with IDs that reference the new derived tables.
+
 ## Installation
 
     pip install csvs-to-sqlite
@@ -39,5 +99,18 @@ search those directories for CSV files and create tables for each one.
       DBNAME: name of the SQLite database file to create
 
     Options:
-      --replace-tables  Replace tables if they already exist
-      --help            Show this message and exit.
+      --replace-tables           Replace tables if they already exist
+      -c, --extract-column TEXT  One or more columns to 'extract' into a separate
+                                 lookup table. If you pass a simple column name
+                                 that column will be replaced with integer foreign
+                                 key references to a new table of that name. You
+                                 can customize the name of the table like so:
+                                 
+                                     --extract-column state:States:state_name
+                                 
+                                 This will pull unique values from the 'state'
+                                 column and use them to populate a new 'States'
+                                 table, with an id column primary key and a
+                                 state_name column containing the strings from the
+                                 original column.
+      --help                     Show this message and exit.
