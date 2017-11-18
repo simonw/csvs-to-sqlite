@@ -16,6 +16,7 @@ before_install:
 
 install:
   - conda install --yes --channel defaults --channel conda-forge python=$TRAVIS_PYTHON_VERSION numpy pandas
+  - pip install click==6.7
   - pip install pytest
 
 script:
