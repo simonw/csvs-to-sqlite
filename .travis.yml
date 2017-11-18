@@ -20,4 +20,4 @@ install:
   - pip install pytest
 
 script:
-  - pytest
+  - PYTHONPATH=/home/travis/build/simonw/csvs-to-sqlite/ pytest
