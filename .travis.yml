@@ -15,12 +15,8 @@ before_install:
   - conda update --yes conda
 
 install:
-  - conda install --yes --channel defaults --channel conda-forge python=$TRAVIS_PYTHON_VERSION numpy scipy beautifulsoup4 six scikit-learn==0.19.0 joblib prettytable python-coveralls ruamel.yaml
-  - if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then conda install --yes --channel defaults configparser mock; fi
-  - if [ ${WITH_PANDAS_AND_SEABORN} == "true" ]; then conda install --yes --channel defaults pandas seaborn; fi
-  # Have to use pip for nose-cov because its entry points are not supported by conda yet
-  - pip install nose-cov
-  - python setup.py install
+  - conda install --yes --channel defaults --channel conda-forge python=$TRAVIS_PYTHON_VERSION numpy pandas
+  - pip install pytest
 
 script:
-  - python setup.py test
+  - pytest
