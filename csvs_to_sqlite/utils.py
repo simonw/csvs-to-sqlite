@@ -145,13 +145,13 @@ def drop_table(conn, table):
     conn.execute('DROP TABLE [{}]'.format(table))
 
 
-def get_create_table_sql(table_name, df, **extra_args):
+def get_create_table_sql(table_name, df, index=True, **extra_args):
     # Create a temporary table with just the first row
     # We do this in memory because we just want to get the
     # CREATE TABLE statement
     # Returns (sql, columns)
     conn = sqlite3.connect(":memory:")
-    df[:1].to_sql(table_name, conn, **extra_args)
+    df[:1].to_sql(table_name, conn, index=index, **extra_args)
     sql = conn.execute(
         'select sql from sqlite_master where name = ?', [table_name]
     ).fetchone()[0]
@@ -164,7 +164,7 @@ def get_create_table_sql(table_name, df, **extra_args):
 
 
 def to_sql_with_foreign_keys(conn, df, name, foreign_keys):
-    create_sql, columns = get_create_table_sql(name, df)
+    create_sql, columns = get_create_table_sql(name, df, index=False)
     foreign_key_bits = []
     index_bits = []
     for column, table in foreign_keys.items():
@@ -193,5 +193,6 @@ def to_sql_with_foreign_keys(conn, df, name, foreign_keys):
     df.to_sql(
         df.table_name,
         conn,
-        if_exists='append'
+        if_exists='append',
+        index=False,
     )
