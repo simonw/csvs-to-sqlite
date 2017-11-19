@@ -222,3 +222,36 @@ def to_sql_with_foreign_keys(conn, df, name, foreign_keys):
         if_exists='append',
         index=False,
     )
+
+
+def best_fts_version():
+    "Discovers the most advanced supported SQLite FTS version"
+    conn = sqlite3.connect(':memory:')
+    for fts in ('FTS5', 'FTS4', 'FTS3'):
+        try:
+            conn.execute('CREATE VIRTUAL TABLE v USING {} (t TEXT);'.format(fts))
+            return fts
+        except sqlite3.OperationalError:
+            continue
+    return None
+
+
+def generate_and_populate_fts(conn, created_tables, cols):
+    fts_version = best_fts_version()
+    sql = []
+    fts_cols = ', '.join('"{}"'.format(c) for c in cols)
+    for table in created_tables:
+        sql.append(
+            'CREATE VIRTUAL TABLE "{content_table}_fts" USING {fts_version} ({cols}, content="{content_table}")'.format(
+                cols=fts_cols,
+                content_table=table,
+                fts_version=fts_version,
+            )
+        )
+        sql.append(
+            'INSERT INTO "{content_table}_fts" (rowid, {cols}) SELECT rowid, {cols} FROM [{content_table}]'.format(
+                cols=fts_cols,
+                content_table=table,
+            )
+        )
+    conn.executescript(';\n'.join(sql))

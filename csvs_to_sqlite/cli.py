@@ -4,7 +4,9 @@ import click
 from .utils import (
     LoadCsvError,
     LookupTable,
+    best_fts_version,
     csvs_from_paths,
+    generate_and_populate_fts,
     load_csv,
     refactor_dataframes,
     table_exists,
@@ -37,8 +39,11 @@ import sqlite3
     "primary key and a state_name column containing the strings "
     "from the original column."
 ))
+@click.option('--fts', '-f', multiple=True, help=(
+    "One or more columns to use to populate a full-text index"
+))
 @click.version_option()
-def cli(paths, dbname, replace_tables, extract_column):
+def cli(paths, dbname, replace_tables, extract_column, fts):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -84,6 +89,7 @@ def cli(paths, dbname, replace_tables, extract_column):
             foreign_keys[bits[0]] = bits[1]
 
     # Now we have loaded the dataframes, we can refactor them
+    created_tables = {}
     refactored = refactor_dataframes(dataframes, extract_columns)
     for df in refactored:
         if isinstance(df, LookupTable):
@@ -98,6 +104,25 @@ def cli(paths, dbname, replace_tables, extract_column):
             to_sql_with_foreign_keys(
                 conn, df, df.table_name, foreign_keys
             )
+            created_tables[df.table_name] = df
+
+    # Create FTS tables
+    if fts:
+        fts_version = best_fts_version()
+        if not fts_version:
+            conn.close()
+            raise click.BadParameter(
+                'Your SQLite version does not support any variant of FTS'
+            )
+        # Check that columns make sense
+        for table, df in created_tables.items():
+            for fts_column in fts:
+                if fts_column not in df.columns:
+                    raise click.BadParameter(
+                        'FTS column "{}" does not exist'.format(fts_column)
+                    )
+
+        generate_and_populate_fts(conn, created_tables.keys(), fts)
 
     conn.close()
 
