@@ -196,13 +196,13 @@ def to_sql_with_foreign_keys(conn, df, name, foreign_keys):
     for column, table in foreign_keys.items():
         if column in columns:
             foreign_key_bits.append(
-                'FOREIGN KEY ({}) REFERENCES {}(id)'.format(
+                'FOREIGN KEY ("{}") REFERENCES [{}](id)'.format(
                     column, table
                 )
             )
             index_bits.append(
                 # CREATE INDEX indexname ON table(column);
-                'CREATE INDEX [{}_{}] ON [{}]([{}]);'.format(
+                'CREATE INDEX ["{}_{}"] ON [{}]("{}");'.format(
                     name, column, name, column
                 )
             )
