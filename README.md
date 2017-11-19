@@ -105,12 +105,15 @@ They will be populated with IDs that reference the new derived tables.
                                  that column will be replaced with integer foreign
                                  key references to a new table of that name. You
                                  can customize the name of the table like so:
-                                 
+
                                      --extract-column state:States:state_name
-                                 
+
                                  This will pull unique values from the 'state'
                                  column and use them to populate a new 'States'
                                  table, with an id column primary key and a
                                  state_name column containing the strings from the
                                  original column.
+      -f, --fts TEXT             One or more columns to use to populate a full-
+                                 text index
+      --version                  Show the version and exit.
       --help                     Show this message and exit.
