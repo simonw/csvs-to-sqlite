@@ -4,7 +4,7 @@ setup(
     name='csvs_to_sqlite',
     description='Convert CSV files into a SQLite database',
     author='Simon Willison',
-    version='0.4',
+    version='0.5',
     license='Apache License, Version 2.0',
     packages=find_packages(),
     install_requires=[
