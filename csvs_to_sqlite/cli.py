@@ -79,18 +79,20 @@ def cli(paths, dbname, replace_tables, extract_column, fts):
 
     click.echo('Loaded {} dataframes'.format(len(dataframes)))
 
-    # Use extract_columns to build a column:table dictionary
+    # Use extract_columns to build a column:(table,label) dictionary
     foreign_keys = {}
     for col in extract_columns:
         bits = col.split(':')
-        if len(bits) == 1:
-            foreign_keys[bits[0]] = bits[0]
+        if len(bits) == 3:
+            foreign_keys[bits[0]] = (bits[1], bits[2])
+        elif len(bits) == 2:
+            foreign_keys[bits[0]] = (bits[1], 'value')
         else:
-            foreign_keys[bits[0]] = bits[1]
+            foreign_keys[bits[0]] = (bits[0], 'value')
 
     # Now we have loaded the dataframes, we can refactor them
     created_tables = {}
-    refactored = refactor_dataframes(dataframes, extract_columns)
+    refactored = refactor_dataframes(dataframes, foreign_keys)
     for df in refactored:
         if isinstance(df, LookupTable):
             df.to_sql(
@@ -122,7 +124,7 @@ def cli(paths, dbname, replace_tables, extract_column, fts):
                         'FTS column "{}" does not exist'.format(fts_column)
                     )
 
-        generate_and_populate_fts(conn, created_tables.keys(), fts)
+        generate_and_populate_fts(conn, created_tables.keys(), fts, foreign_keys)
 
     conn.close()
 

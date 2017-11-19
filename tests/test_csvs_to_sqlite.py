@@ -143,3 +143,31 @@ def test_fts_error_on_missing_columns():
         )
         assert result.exit_code != 0
         assert result.output.strip().endswith('FTS column "badcolumn" does not exist')
+
+
+def test_fts_and_extract_columns():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV)
+        result = runner.invoke(
+            cli.cli, (
+                'test.csv fts-extracted.db -c office -c party -c candidate '
+                '-f party -f candidate'
+            ).split()
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('fts-extracted.db')
+        assert [
+            ('Yolo', 100001, 'President', 'PAF', 'Gloria Estela La Riva'),
+        ] == conn.execute('''
+            select
+                county, precinct, office.value, party.value, candidate.value
+            from test
+                left join office on test.office = office.id
+                left join party on test.party = party.id
+                left join candidate on test.candidate = candidate.id
+            where test.rowid in (
+                select rowid from test_fts
+                where test_fts match 'paf gloria'
+            )
+        ''').fetchall()

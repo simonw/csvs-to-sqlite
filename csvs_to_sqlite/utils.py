@@ -105,19 +105,9 @@ class LookupTable:
         )
 
 
-def refactor_dataframes(dataframes, extract_columns):
+def refactor_dataframes(dataframes, foreign_keys):
     lookup_tables = {}
-    for extract_column in extract_columns:
-        bits = extract_column.split(':')
-        column = bits.pop(0)
-        if bits:
-            table_name = bits.pop(0)
-        else:
-            table_name = column
-        if bits:
-            value_column = bits[0]
-        else:
-            value_column = 'value'
+    for column, (table_name, value_column) in foreign_keys.items():
         # Now apply this to the dataframes
         for dataframe in dataframes:
             if column in dataframe.columns:
@@ -193,7 +183,7 @@ def to_sql_with_foreign_keys(conn, df, name, foreign_keys):
     create_sql, columns = get_create_table_sql(name, df, index=False)
     foreign_key_bits = []
     index_bits = []
-    for column, table in foreign_keys.items():
+    for column, (table, value_column) in foreign_keys.items():
         if column in columns:
             foreign_key_bits.append(
                 'FOREIGN KEY ("{}") REFERENCES [{}](id)'.format(
@@ -236,7 +226,7 @@ def best_fts_version():
     return None
 
 
-def generate_and_populate_fts(conn, created_tables, cols):
+def generate_and_populate_fts(conn, created_tables, cols, foreign_keys):
     fts_version = best_fts_version()
     sql = []
     fts_cols = ', '.join('"{}"'.format(c) for c in cols)
@@ -248,10 +238,50 @@ def generate_and_populate_fts(conn, created_tables, cols):
                 fts_version=fts_version,
             )
         )
-        sql.append(
-            'INSERT INTO "{content_table}_fts" (rowid, {cols}) SELECT rowid, {cols} FROM [{content_table}]'.format(
+        if not foreign_keys:
+            # Select is simple:
+            select = 'SELECT rowid, {cols} FROM [{content_table}]'.format(
                 cols=fts_cols,
                 content_table=table,
+            )
+        else:
+            # Select is complicated:
+            # select
+            #     county, precinct, office.value, district.value,
+            #     party.value, candidate.value, votes
+            # from content_table
+            #     left join office on content_table.office = office.id
+            #     left join district on content_table.district = district.id
+            #     left join party on content_table.party = party.id
+            #     left join candidate on content_table.candidate = candidate.id
+            # order by content_table.rowid
+            select_cols = []
+            joins = []
+            for col in cols:
+                if col in foreign_keys:
+                    other_table, label_column = foreign_keys[col]
+                    select_cols.append('[{}]."{}"'.format(
+                        other_table, label_column
+                    ))
+                    joins.append(
+                        'left join [{other_table}] on [{table}]."{column}" = [{other_table}].id'.format(
+                            other_table=other_table,
+                            table=table,
+                            column=col,
+                        )
+                    )
+                else:
+                    select_cols.append('"{}"'.format(col))
+            select = 'SELECT [{content_table}].rowid, {select_cols} FROM [{content_table}] {joins}'.format(
+                select_cols=', '.join('{}'.format(c) for c in select_cols),
+                content_table=table,
+                joins='\n'.join(joins),
+            )
+        sql.append(
+            'INSERT INTO "{content_table}_fts" (rowid, {cols}) {select}'.format(
+                cols=fts_cols,
+                content_table=table,
+                select=select,
             )
         )
     conn.executescript(';\n'.join(sql))

@@ -45,7 +45,7 @@ def test_refactor_dataframes():
         'name': 'Owen',
         'score': 0.7,
     }])
-    output = utils.refactor_dataframes([df], ['name:People:first_name'])
+    output = utils.refactor_dataframes([df], {'name': ('People', 'first_name')})
     assert 2 == len(output)
     lookup_table, dataframe = output
     assert {1: 'Terry', 2: 'Owen'} == lookup_table.id_to_value
