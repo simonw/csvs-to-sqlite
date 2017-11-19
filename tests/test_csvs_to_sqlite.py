@@ -23,16 +23,20 @@ def test_flat():
             (0, 'county', 'TEXT', 0, None, 0),
             (1, 'precinct', 'INTEGER', 0, None, 0),
             (2, 'office', 'TEXT', 0, None, 0),
-            (3, 'district', 'REAL', 0, None, 0),
+            (3, 'district', 'INTEGER', 0, None, 0),
             (4, 'party', 'TEXT', 0, None, 0),
             (5, 'candidate', 'TEXT', 0, None, 0),
             (6, 'votes', 'INTEGER', 0, None, 0)
         ] == list(conn.execute('PRAGMA table_info(test)'))
+        rows = conn.execute('select * from test').fetchall()
         assert [
             ('Yolo', 100001, 'President', None, 'LIB', 'Gary Johnson', 41),
             ('Yolo', 100001, 'President', None, 'PAF', 'Gloria Estela La Riva', 8),
             ('Yolo', 100001, 'Proposition 51', None, None, 'No', 398),
             ('Yolo', 100001, 'Proposition 51', None, None, 'Yes', 460),
-            ('Yolo', 100001, 'State Assembly', 7.0, 'DEM', 'Kevin McCarty', 572),
-            ('Yolo', 100001, 'State Assembly', 7.0, 'REP', 'Ryan K. Brown', 291)
-        ] == conn.execute('select * from test').fetchall()
+            ('Yolo', 100001, 'State Assembly', 7, 'DEM', 'Kevin McCarty', 572),
+            ('Yolo', 100001, 'State Assembly', 7, 'REP', 'Ryan K. Brown', 291)
+        ] == rows
+        last_row = rows[-1]
+        for i, t in enumerate((str, int, str, int, str, str, int)):
+            assert isinstance(last_row[i], t)

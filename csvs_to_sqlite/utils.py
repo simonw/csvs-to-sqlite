@@ -151,7 +151,26 @@ def get_create_table_sql(table_name, df, index=True, **extra_args):
     # CREATE TABLE statement
     # Returns (sql, columns)
     conn = sqlite3.connect(":memory:")
-    df[:1].to_sql(table_name, conn, index=index, **extra_args)
+    # Before calling to_sql we need correct the dtypes that we will be using
+    # to pick the right SQL column types. pandas mostly gets this right...
+    # except for columns that contain a mixture of integers and Nones. These
+    # will be incorrectly detected as being of DB type REAL when we want them
+    # to be INTEGER instead.
+    # http://pandas.pydata.org/pandas-docs/stable/gotchas.html#support-for-integer-na
+    sql_type_overrides = {}
+    if isinstance(df, pd.DataFrame):  # No need to do this if it's a Series
+        for column, dtype in df.dtypes.items():
+            # Are any of these float columns?
+            if dtype in (np.float32, np.float64):
+                # if every non-NaN value is an integer, switch to int
+                num_non_integer_floats = df['district'].map(
+                    lambda v: not np.isnan(v) and not v.is_integer()
+                ).sum()
+                if num_non_integer_floats == 0:
+                    # Everything was NaN or an integer-float - switch type:
+                    sql_type_overrides[column] = 'INTEGER'
+
+    df[:1].to_sql(table_name, conn, index=index, dtype=sql_type_overrides, **extra_args)
     sql = conn.execute(
         'select sql from sqlite_master where name = ?', [table_name]
     ).fetchone()[0]
