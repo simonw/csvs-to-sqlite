@@ -53,7 +53,6 @@ def test_extract_columns():
         )
         assert result.exit_code == 0
         assert result.output.strip().endswith('Created extracted.db from 1 CSV file')
-        print(result.output)
         conn = sqlite3.connect('extracted.db')
         assert [
             (0, 'county', 'TEXT', 0, None, 0),
