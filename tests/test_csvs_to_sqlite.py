@@ -42,3 +42,47 @@ def test_flat():
         last_row = rows[-1]
         for i, t in enumerate((string_types, int, string_types, int, string_types, string_types, int)):
             assert isinstance(last_row[i], t)
+
+
+def test_extract_columns():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV)
+        result = runner.invoke(
+            cli.cli,
+            'test.csv extracted.db -c office -c district -c party -c candidate'.split()
+        )
+        assert result.exit_code == 0
+        assert result.output.strip().endswith('Created extracted.db from 1 CSV file')
+        conn = sqlite3.connect('extracted.db')
+        assert [
+            (0, 'county', 'TEXT', 0, None, 0),
+            (1, 'precinct', 'INTEGER', 0, None, 0),
+            (2, 'office', 'INTEGER', 0, None, 0),
+            (3, 'district', 'INTEGER', 0, None, 0),
+            (4, 'party', 'INTEGER', 0, None, 0),
+            (5, 'candidate', 'INTEGER', 0, None, 0),
+            (6, 'votes', 'INTEGER', 0, None, 0)
+        ] == list(conn.execute('PRAGMA table_info(test)'))
+        rows = conn.execute('''
+            select
+                county, precinct, office.value, district.value,
+                party.value, candidate.value, votes
+            from test
+                left join office on test.office = office.id
+                left join district on test.district = district.id
+                left join party on test.party = party.id
+                left join candidate on test.candidate = candidate.id
+            order by test.rowid
+        ''').fetchall()
+        assert [
+            ('Yolo', 100001, 'President', None, 'LIB', 'Gary Johnson', 41),
+            ('Yolo', 100001, 'President', None, 'PAF', 'Gloria Estela La Riva', 8),
+            ('Yolo', 100001, 'Proposition 51', None, None, 'No', 398),
+            ('Yolo', 100001, 'Proposition 51', None, None, 'Yes', 460),
+            ('Yolo', 100001, 'State Assembly', 7.0, 'DEM', 'Kevin McCarty', 572),
+            ('Yolo', 100001, 'State Assembly', 7.0, 'REP', 'Ryan K. Brown', 291)
+        ] == rows
+        last_row = rows[-1]
+        for i, t in enumerate((string_types, int, string_types, float, string_types, string_types, int)):
+            assert isinstance(last_row[i], t)
