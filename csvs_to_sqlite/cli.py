@@ -37,6 +37,7 @@ import sqlite3
     "primary key and a state_name column containing the strings "
     "from the original column."
 ))
+@click.version_option()
 def cli(paths, dbname, replace_tables, extract_column):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
