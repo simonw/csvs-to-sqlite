@@ -163,7 +163,7 @@ def get_create_table_sql(table_name, df, index=True, **extra_args):
             # Are any of these float columns?
             if dtype in (np.float32, np.float64):
                 # if every non-NaN value is an integer, switch to int
-                num_non_integer_floats = df['district'].map(
+                num_non_integer_floats = df[column].map(
                     lambda v: not np.isnan(v) and not v.is_integer()
                 ).sum()
                 if num_non_integer_floats == 0:
