@@ -159,7 +159,7 @@ def get_create_table_sql(table_name, df, index=True, **extra_args):
     # http://pandas.pydata.org/pandas-docs/stable/gotchas.html#support-for-integer-na
     sql_type_overrides = {}
     if isinstance(df, pd.DataFrame):  # No need to do this if it's a Series
-        for column, dtype in df.dtypes.items():
+        for column, dtype in df.dtypes.iteritems():
             # Are any of these float columns?
             if dtype in (np.float32, np.float64):
                 # if every non-NaN value is an integer, switch to int

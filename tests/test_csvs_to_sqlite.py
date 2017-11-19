@@ -1,6 +1,8 @@
 from click.testing import CliRunner
 from csvs_to_sqlite import cli
+from six import string_types
 import sqlite3
+
 
 CSV = '''county,precinct,office,district,party,candidate,votes
 Yolo,100001,President,,LIB,Gary Johnson,41
@@ -38,5 +40,5 @@ def test_flat():
             ('Yolo', 100001, 'State Assembly', 7, 'REP', 'Ryan K. Brown', 291)
         ] == rows
         last_row = rows[-1]
-        for i, t in enumerate((str, int, str, int, str, str, int)):
+        for i, t in enumerate((string_types, int, string_types, int, string_types, string_types, int)):
             assert isinstance(last_row[i], t)
