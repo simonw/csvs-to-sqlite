@@ -3,7 +3,6 @@ from csvs_to_sqlite import cli
 from six import string_types
 import sqlite3
 
-
 CSV = '''county,precinct,office,district,party,candidate,votes
 Yolo,100001,President,,LIB,Gary Johnson,41
 Yolo,100001,President,,PAF,Gloria Estela La Riva,8
@@ -54,6 +53,7 @@ def test_extract_columns():
         )
         assert result.exit_code == 0
         assert result.output.strip().endswith('Created extracted.db from 1 CSV file')
+        print(result.output)
         conn = sqlite3.connect('extracted.db')
         assert [
             (0, 'county', 'TEXT', 0, None, 0),
@@ -80,9 +80,33 @@ def test_extract_columns():
             ('Yolo', 100001, 'President', None, 'PAF', 'Gloria Estela La Riva', 8),
             ('Yolo', 100001, 'Proposition 51', None, None, 'No', 398),
             ('Yolo', 100001, 'Proposition 51', None, None, 'Yes', 460),
-            ('Yolo', 100001, 'State Assembly', 7.0, 'DEM', 'Kevin McCarty', 572),
-            ('Yolo', 100001, 'State Assembly', 7.0, 'REP', 'Ryan K. Brown', 291)
+            ('Yolo', 100001, 'State Assembly', 7, 'DEM', 'Kevin McCarty', 572),
+            ('Yolo', 100001, 'State Assembly', 7, 'REP', 'Ryan K. Brown', 291)
         ] == rows
         last_row = rows[-1]
-        for i, t in enumerate((string_types, int, string_types, float, string_types, string_types, int)):
+        for i, t in enumerate((string_types, int, string_types, int, string_types, string_types, int)):
             assert isinstance(last_row[i], t)
+
+        # Check that the various foreign key tables have the right things in them
+        assert [
+            (1, 'President'),
+            (2, 'Proposition 51'),
+            (3, 'State Assembly'),
+        ] == conn.execute('select * from office').fetchall()
+        assert [
+            (1, 7),
+        ] == conn.execute('select * from district').fetchall()
+        assert [
+            (1, 'LIB'),
+            (2, 'PAF'),
+            (3, 'DEM'),
+            (4, 'REP'),
+        ] == conn.execute('select * from party').fetchall()
+        assert [
+            (1, 'Gary Johnson'),
+            (2, 'Gloria Estela La Riva'),
+            (3, 'No'),
+            (4, 'Yes'),
+            (5, 'Kevin McCarty'),
+            (6, 'Ryan K. Brown'),
+        ] == conn.execute('select * from candidate').fetchall()
