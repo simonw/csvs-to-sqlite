@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.6.1 (2017-11-24)
+------------------
+- -f and -c now work for single table multiple columns.
+
+  Fixes #12
+
 0.6 (2017-11-24)
 ----------------
 - `--fts` and `--extract-column` now cooperate.
