@@ -1,5 +1,6 @@
 import os
 import fnmatch
+import hashlib
 import pandas as pd
 import numpy as np
 import sqlite3
@@ -257,15 +258,26 @@ def generate_and_populate_fts(conn, created_tables, cols, foreign_keys):
             # order by content_table.rowid
             select_cols = []
             joins = []
+            table_seen_count = {}
             for col in cols:
                 if col in foreign_keys:
                     other_table, label_column = foreign_keys[col]
+                    seen_count = table_seen_count.get(other_table, 0) + 1
+                    table_seen_count[other_table] = seen_count
+                    alias = ''
+                    if seen_count > 1:
+                        alias = 'table_alias_{}_{}'.format(
+                            hashlib.md5(other_table.encode('utf8')).hexdigest(), seen_count
+                        )
                     select_cols.append('[{}]."{}"'.format(
-                        other_table, label_column
+                        alias or other_table,
+                        label_column,
                     ))
                     joins.append(
-                        'left join [{other_table}] on [{table}]."{column}" = [{other_table}].id'.format(
+                        'left join [{other_table}] {alias} on [{table}]."{column}" = [{alias_or_other_table}].id'.format(
                             other_table=other_table,
+                            alias_or_other_table=alias or other_table,
+                            alias=alias,
                             table=table,
                             column=col,
                         )

@@ -11,6 +11,11 @@ Yolo,100001,Proposition 51,,,Yes,460
 Yolo,100001,State Assembly,7,DEM,Kevin McCarty,572
 Yolo,100001,State Assembly,7,REP,Ryan K. Brown,291'''
 
+CSV_MULTI = '''film,actor_1,actor_2
+The Rock,Sean Connery,Nicolas Cage
+National Treasure,Nicolas Cage,Diane Kruger
+Troy,Diane Kruger,Orlando Bloom'''
+
 
 def test_flat():
     runner = CliRunner()
@@ -169,5 +174,46 @@ def test_fts_and_extract_columns():
             where test.rowid in (
                 select rowid from test_fts
                 where test_fts match 'paf gloria'
+            )
+        ''').fetchall()
+
+
+def test_fts_one_column_multiple_aliases():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV_MULTI)
+        result = runner.invoke(
+            cli.cli, (
+                'test.csv fts-extracted.db -c film '
+                '-c actor_1:actors:name -c actor_2:actors:name '
+                '-f film -f actor_1 -f actor_2'
+            ).split()
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('fts-extracted.db')
+        assert [
+            ('The Rock', 'Sean Connery', 'Nicolas Cage'),
+            ('National Treasure', 'Nicolas Cage', 'Diane Kruger'),
+            ('Troy', 'Diane Kruger', 'Orlando Bloom'),
+        ] == conn.execute('''
+            select
+                film.value, a1.name, a2.name
+            from test
+                join film on test.film = film.id
+                join actors a1 on test.actor_1 = a1.id
+                join actors a2 on test.actor_2 = a2.id
+        ''').fetchall()
+        assert [
+            ('National Treasure', 'Nicolas Cage', 'Diane Kruger'),
+            ('Troy', 'Diane Kruger', 'Orlando Bloom'),
+        ] == conn.execute('''
+            select
+                film.value, a1.name, a2.name
+            from test
+                join film on test.film = film.id
+                join actors a1 on test.actor_1 = a1.id
+                join actors a2 on test.actor_2 = a2.id
+            where test.rowid in (
+                select rowid from [test_fts] where [test_fts] match 'kruger'
             )
         ''').fetchall()
