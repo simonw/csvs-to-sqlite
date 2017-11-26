@@ -27,6 +27,13 @@ search those directories for CSV files and create tables for each one.
 
     csvs-to-sqlite ~/path/to/directory all-my-csvs.db
 
+## Handling TSV (tab-separated values)
+
+You can use the `-s` option to specify a different delimiter. If you want
+to use a tab character you'll need to apply shell escaping like so:
+
+    csvs-to-sqlite my-file.tsv my-file.db -s $'\t'
+
 ## Refactoring columns into separate lookup tables
 
 Let's say you have a CSV file that looks like this:
