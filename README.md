@@ -107,6 +107,9 @@ They will be populated with IDs that reference the new derived tables.
 
     Options:
       -s, --separator TEXT       Field separator in input .csv
+      -q, --quoting INTEGER      Control field quoting behavior per csv.QUOTE_*
+                                   constants. Use one of QUOTE_MINIMAL (0),
+                                   QUOTE_ALL (1), QUOTE_NONNUMERIC (2) or QUOTE_NONE (3).
       --replace-tables           Replace tables if they already exist
       -c, --extract-column TEXT  One or more columns to 'extract' into a separate
                                  lookup table. If you pass a simple column name
