@@ -99,6 +99,7 @@ They will be populated with IDs that reference the new derived tables.
       DBNAME: name of the SQLite database file to create
 
     Options:
+      -s, --separator TEXT       Field separator in input .csv
       --replace-tables           Replace tables if they already exist
       -c, --extract-column TEXT  One or more columns to 'extract' into a separate
                                  lookup table. If you pass a simple column name
