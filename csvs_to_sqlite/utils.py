@@ -10,11 +10,11 @@ class LoadCsvError(Exception):
     pass
 
 
-def load_csv(filepath, separator, encodings_to_try=('utf8', 'latin-1')):
+def load_csv(filepath, separator, quoting, encodings_to_try=('utf8', 'latin-1')):
     try:
         for encoding in encodings_to_try:
             try:
-                return pd.read_csv(filepath, separator, encoding=encoding)
+                return pd.read_csv(filepath, sep=separator, quoting=quoting, low_memory=True, encoding=encoding)
             except UnicodeDecodeError:
                 continue
             except pd.errors.ParserError as e:
