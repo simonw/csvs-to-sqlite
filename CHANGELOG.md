@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.7 (2017-11-25)
+----------------
+- Add -s option to specify input field separator (#13) [Jani Monoses]
+
+
 0.6.1 (2017-11-24)
 ------------------
 - -f and -c now work for single table multiple columns.
