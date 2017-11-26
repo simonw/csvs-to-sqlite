@@ -25,6 +25,7 @@ import sqlite3
     required=True,
 )
 @click.argument('dbname', nargs=1)
+@click.option('--separator', '-s', default=',', help='Field separator in input .csv')
 @click.option('--replace-tables', is_flag=True, help='Replace tables if they already exist')
 @click.option('--extract-column', '-c', multiple=True, help=(
     "One or more columns to 'extract' into a separate lookup table. "
@@ -43,7 +44,7 @@ import sqlite3
     "One or more columns to use to populate a full-text index"
 ))
 @click.version_option()
-def cli(paths, dbname, replace_tables, extract_column, fts):
+def cli(paths, dbname, separator, replace_tables, extract_column, fts):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -69,7 +70,7 @@ def cli(paths, dbname, replace_tables, extract_column, fts):
     csvs = csvs_from_paths(paths)
     for name, path in csvs.items():
         try:
-            df = load_csv(path)
+            df = load_csv(path, separator)
             df.table_name = name
             dataframes.append(df)
         except LoadCsvError as e:
