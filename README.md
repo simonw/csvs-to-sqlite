@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/csvs-to-sqlite.svg)](https://pypi.python.org/pypi/csvs-to-sqlite)
 [![Travis CI](https://travis-ci.org/simonw/csvs-to-sqlite.svg?branch=master)](https://travis-ci.org/simonw/csvs-to-sqlite)
 
-Convert CSV files into a SQLite database
+Convert CSV files into a SQLite database. Browse and publish that SQLite database with [Datasette](https://github.com/simonw/datasette).
 
 Basic usage:
 
