@@ -55,7 +55,8 @@ def cli(paths, dbname, separator, quoting, replace_tables, extract_column, fts):
     extract_columns = extract_column
     del extract_column
 
-    click.echo('extract_columns={}'.format(extract_columns))
+    if extract_columns:
+        click.echo('extract_columns={}'.format(extract_columns))
     if dbname.endswith('.csv'):
         raise click.BadParameter(
             'dbname must not end with .csv'
