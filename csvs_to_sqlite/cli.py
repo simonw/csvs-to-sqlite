@@ -26,6 +26,8 @@ import sqlite3
 )
 @click.argument('dbname', nargs=1)
 @click.option('--separator', '-s', default=',', help='Field separator in input .csv')
+@click.option('--table-name', '-t', default='', help='Name of the table to create')
+@click.option('--append-tables', '-a', is_flag=True, help='Append to existing tables')
 @click.option('--quoting', '-q', default=0, help='Control field quoting behavior per csv.QUOTE_* constants. Use one of QUOTE_MINIMAL (0), QUOTE_ALL (1), QUOTE_NONNUMERIC (2) or QUOTE_NONE (3).')
 @click.option('--skip-errors', is_flag=True, help='Skip lines with too many fields instead of stopping the import')
 @click.option('--replace-tables', is_flag=True, help='Replace tables if they already exist')
@@ -46,7 +48,7 @@ import sqlite3
     "One or more columns to use to populate a full-text index"
 ))
 @click.version_option()
-def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, extract_column, fts):
+def cli(paths, dbname, separator, quoting, skip_errors, table_name, append_tables, replace_tables, extract_column, fts):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -74,7 +76,7 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, extract_
     for name, path in csvs.items():
         try:
             df = load_csv(path, separator, skip_errors, quoting)
-            df.table_name = name
+            df.table_name = table_name if table_name != '' else name
             dataframes.append(df)
         except LoadCsvError as e:
             click.echo('Could not load {}: {}'.format(
@@ -108,7 +110,7 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, extract_
             if replace_tables and table_exists(conn, df.table_name):
                 drop_table(conn, df.table_name)
             to_sql_with_foreign_keys(
-                conn, df, df.table_name, foreign_keys
+                conn, df, df.table_name, foreign_keys, append_tables
             )
             created_tables[df.table_name] = df
 

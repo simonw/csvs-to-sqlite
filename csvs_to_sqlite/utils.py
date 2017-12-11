@@ -180,32 +180,33 @@ def get_create_table_sql(table_name, df, index=True, **extra_args):
     return sql, columns
 
 
-def to_sql_with_foreign_keys(conn, df, name, foreign_keys):
-    create_sql, columns = get_create_table_sql(name, df, index=False)
-    foreign_key_bits = []
-    index_bits = []
-    for column, (table, value_column) in foreign_keys.items():
-        if column in columns:
-            foreign_key_bits.append(
-                'FOREIGN KEY ("{}") REFERENCES [{}](id)'.format(
-                    column, table
+def to_sql_with_foreign_keys(conn, df, name, foreign_keys, append_tables):
+    if not append_tables:
+        create_sql, columns = get_create_table_sql(name, df, index=False)
+        foreign_key_bits = []
+        index_bits = []
+        for column, (table, value_column) in foreign_keys.items():
+            if column in columns:
+                foreign_key_bits.append(
+                    'FOREIGN KEY ("{}") REFERENCES [{}](id)'.format(
+                        column, table
+                    )
                 )
-            )
-            index_bits.append(
-                # CREATE INDEX indexname ON table(column);
-                'CREATE INDEX ["{}_{}"] ON [{}]("{}");'.format(
-                    name, column, name, column
+                index_bits.append(
+                    # CREATE INDEX indexname ON table(column);
+                    'CREATE INDEX ["{}_{}"] ON [{}]("{}");'.format(
+                        name, column, name, column
+                    )
                 )
-            )
 
-    foreign_key_sql = ',\n    '.join(foreign_key_bits)
-    if foreign_key_sql:
-        create_sql = '{},\n{});'.format(
-            create_sql.strip().rstrip(')'), foreign_key_sql
-        )
-    if index_bits:
-        create_sql += '\n' + '\n'.join(index_bits)
-    conn.executescript(create_sql)
+        foreign_key_sql = ',\n    '.join(foreign_key_bits)
+        if foreign_key_sql:
+            create_sql = '{},\n{});'.format(
+                create_sql.strip().rstrip(')'), foreign_key_sql
+            )
+        if index_bits:
+            create_sql += '\n' + '\n'.join(index_bits)
+        conn.executescript(create_sql)
     # Now that we have created the table, insert the rows:
     df.to_sql(
         df.table_name,
