@@ -29,6 +29,7 @@ import sqlite3
 @click.option('--quoting', '-q', default=0, help='Control field quoting behavior per csv.QUOTE_* constants. Use one of QUOTE_MINIMAL (0), QUOTE_ALL (1), QUOTE_NONNUMERIC (2) or QUOTE_NONE (3).')
 @click.option('--skip-errors', is_flag=True, help='Skip lines with too many fields instead of stopping the import')
 @click.option('--replace-tables', is_flag=True, help='Replace tables if they already exist')
+@click.option('--table', '-t', help='Table to use (instead of using CSV filename)', default=None)
 @click.option('--extract-column', '-c', multiple=True, help=(
     "One or more columns to 'extract' into a separate lookup table. "
     "If you pass a simple column name that column will be replaced "
@@ -46,7 +47,7 @@ import sqlite3
     "One or more columns to use to populate a full-text index"
 ))
 @click.version_option()
-def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, extract_column, fts):
+def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, fts):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -74,7 +75,7 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, extract_
     for name, path in csvs.items():
         try:
             df = load_csv(path, separator, skip_errors, quoting)
-            df.table_name = name
+            df.table_name = table or name
             dataframes.append(df)
         except LoadCsvError as e:
             click.echo('Could not load {}: {}'.format(
