@@ -182,7 +182,7 @@ def get_create_table_sql(table_name, df, index=True, sql_type_overrides=None, **
     return sql, columns
 
 
-def to_sql_with_foreign_keys(conn, df, name, foreign_keys, sql_type_overrides=None):
+def to_sql_with_foreign_keys(conn, df, name, foreign_keys, sql_type_overrides=None, index_fks=False):
     create_sql, columns = get_create_table_sql(name, df, index=False, sql_type_overrides=sql_type_overrides)
     foreign_key_bits = []
     index_bits = []
@@ -193,12 +193,13 @@ def to_sql_with_foreign_keys(conn, df, name, foreign_keys, sql_type_overrides=No
                     column, table
                 )
             )
-            index_bits.append(
-                # CREATE INDEX indexname ON table(column);
-                'CREATE INDEX ["{}_{}"] ON [{}]("{}");'.format(
-                    name, column, name, column
+            if index_fks:
+                index_bits.append(
+                    # CREATE INDEX indexname ON table(column);
+                    'CREATE INDEX ["{}_{}"] ON [{}]("{}");'.format(
+                        name, column, name, column
+                    )
                 )
-            )
 
     foreign_key_sql = ',\n    '.join(foreign_key_bits)
     if foreign_key_sql:
