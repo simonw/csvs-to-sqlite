@@ -12,11 +12,18 @@ class LoadCsvError(Exception):
     pass
 
 
-def load_csv(filepath, separator, skip_errors, quoting, encodings_to_try=('utf8', 'latin-1')):
+def load_csv(filepath, separator, skip_errors, quoting, shape, encodings_to_try=('utf8', 'latin-1')):
+    usecols = None
+    if shape:
+        usecols = [defn['csv_name'] for defn in parse_shape(shape)]
     try:
         for encoding in encodings_to_try:
             try:
-                return pd.read_csv(filepath, sep=separator, quoting=quoting, error_bad_lines=not skip_errors, low_memory=True, encoding=encoding)
+                return pd.read_csv(
+                    filepath, sep=separator, quoting=quoting,
+                    error_bad_lines=not skip_errors, low_memory=True,
+                    encoding=encoding, usecols=usecols
+                )
             except UnicodeDecodeError:
                 continue
             except pd.errors.ParserError as e:
