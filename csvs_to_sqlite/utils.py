@@ -4,6 +4,7 @@ import hashlib
 import pandas as pd
 import numpy as np
 import re
+import six
 import sqlite3
 
 
@@ -314,6 +315,9 @@ def parse_shape(shape):
         if m:
             type_override = m.group(1)
             defn = type_re.sub('', defn)
+            # In Python 2 type_override needs to be a bytestring
+            if six.PY2:
+                type_override = str(type_override)
         # Is this a rename?
         if ':' in defn:
             csv_name, db_name = defn.split(':', 1)

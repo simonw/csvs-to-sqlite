@@ -10,11 +10,11 @@ setup(
     install_requires=[
         'click==6.7',
         'pandas==0.20.3',
+        'six',
     ],
     setup_requires=['pytest-runner'],
     tests_require=[
         'pytest==3.2.3',
-        'six',
     ],
     entry_points='''
         [console_scripts]

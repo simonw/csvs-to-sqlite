@@ -1,6 +1,6 @@
 from click.testing import CliRunner
 from csvs_to_sqlite import cli
-from six import string_types
+from six import string_types, text_type
 import sqlite3
 
 CSV = '''county,precinct,office,district,party,candidate,votes
@@ -249,5 +249,5 @@ def test_shape():
             ('Yolo', 291.0),
         ] == results
         for city, votes in results:
-            assert isinstance(city, str)
+            assert isinstance(city, text_type)
             assert isinstance(votes, float)
