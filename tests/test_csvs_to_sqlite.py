@@ -251,3 +251,35 @@ def test_shape():
         for city, votes in results:
             assert isinstance(city, text_type)
             assert isinstance(votes, float)
+
+
+def test_filename_column():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test1.csv', 'w').write(CSV)
+        open('test2.csv', 'w').write(CSV_MULTI)
+        result = runner.invoke(
+            cli.cli, [
+                '.', 'test-filename.db',
+                '--filename-column', 'source',
+            ]
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('test-filename.db')
+        assert [
+            ('./test1',),
+            ('./test2',),
+        ] == conn.execute(
+            'select name from sqlite_master order by name'
+        ).fetchall()
+        # Check the source column has been added and populated
+        assert [
+            ('Yolo', 'Gary Johnson', 41, './test1'),
+        ] == conn.execute(
+            'select county, candidate, votes, source from [./test1] limit 1'
+        ).fetchall()
+        assert [
+            ('The Rock', 'Sean Connery', 'Nicolas Cage', './test2'),
+        ] == conn.execute(
+            'select film, actor_1, actor_2, source from [./test2] limit 1'
+        ).fetchall()

@@ -132,5 +132,7 @@ They will be populated with IDs that reference the new derived tables.
                                  text index
       --shape TEXT               Custom shape for the DB table - format is
                                  csvcol:dbcol(TYPE),...
+      --filename-column TEXT     Add a column with this name and populate with CSV
+                                 file name
       --version                  Show the version and exit.
       --help                     Show this message and exit.

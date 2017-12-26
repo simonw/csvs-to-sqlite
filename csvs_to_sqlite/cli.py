@@ -48,8 +48,9 @@ import sqlite3
     "One or more columns to use to populate a full-text index"
 ))
 @click.option('--shape', help='Custom shape for the DB table - format is csvcol:dbcol(TYPE),...', default=None)
+@click.option('--filename-column', help='Add a column with this name and populate with CSV file name', default=None)
 @click.version_option()
-def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, fts, shape):
+def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, fts, shape, filename_column):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -79,6 +80,9 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, e
         try:
             df = load_csv(path, separator, skip_errors, quoting)
             df.table_name = table or name
+            if filename_column:
+                df[filename_column] = name
+                # TODO: Add this to shape if it was set
             sql_type_overrides = apply_shape(df, shape)
             dataframes.append(df)
         except LoadCsvError as e:
@@ -112,10 +116,18 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, e
             # create the table with extra SQL for foreign keys
             if replace_tables and table_exists(conn, df.table_name):
                 drop_table(conn, df.table_name)
-            to_sql_with_foreign_keys(
-                conn, df, df.table_name, foreign_keys, sql_type_overrides
-            )
-            created_tables[df.table_name] = df
+            if table_exists(conn, df.table_name):
+                df.to_sql(
+                    df.table_name,
+                    conn,
+                    if_exists='append',
+                    index=False,
+                )
+            else:
+                to_sql_with_foreign_keys(
+                    conn, df, df.table_name, foreign_keys, sql_type_overrides
+                )
+                created_tables[df.table_name] = df
 
     # Create FTS tables
     if fts:
