@@ -283,3 +283,23 @@ def test_filename_column():
         ] == conn.execute(
             'select film, actor_1, actor_2, source from [./test2] limit 1'
         ).fetchall()
+
+
+def test_filename_column_with_shape():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV)
+        result = runner.invoke(
+            cli.cli, [
+                'test.csv', 'test.db',
+                '--filename-column', 'source',
+                '--shape', 'county:Cty,votes:Vts'
+            ]
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('test.db')
+        assert [
+            ('Yolo', 41, 'test'),
+        ] == conn.execute(
+            'select Cty, Vts, source from test limit 1'
+        ).fetchall()
