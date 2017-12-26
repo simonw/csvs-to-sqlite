@@ -217,3 +217,37 @@ def test_fts_one_column_multiple_aliases():
                 select rowid from [test_fts] where [test_fts] match 'kruger'
             )
         ''').fetchall()
+
+
+def test_shape():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV)
+        result = runner.invoke(
+            cli.cli, [
+                'test.csv', 'test-reshaped.db',
+                '--shape', 'county:Cty,votes:Vts(REAL)'
+            ]
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('test-reshaped.db')
+        # Check we only have Cty and Vts columns:
+        assert [
+            (0, 'Cty', 'TEXT', 0, None, 0),
+            (1, 'Vts', 'REAL', 0, None, 0),
+        ] == conn.execute('PRAGMA table_info(test);').fetchall()
+        # Now check that values are as expected:
+        results = conn.execute('''
+            select Cty, Vts from test
+        ''').fetchall()
+        assert [
+            ('Yolo', 41.0),
+            ('Yolo', 8.0),
+            ('Yolo', 398.0),
+            ('Yolo', 460.0),
+            ('Yolo', 572.0),
+            ('Yolo', 291.0),
+        ] == results
+        for city, votes in results:
+            assert isinstance(city, str)
+            assert isinstance(votes, float)

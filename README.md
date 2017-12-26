@@ -114,6 +114,7 @@ They will be populated with IDs that reference the new derived tables.
       --skip-errors              Skip lines with too many fields instead of
                                  stopping the import
       --replace-tables           Replace tables if they already exist
+      -t, --table TEXT           Table to use (instead of using CSV filename)
       -c, --extract-column TEXT  One or more columns to 'extract' into a separate
                                  lookup table. If you pass a simple column name
                                  that column will be replaced with integer foreign
@@ -129,5 +130,7 @@ They will be populated with IDs that reference the new derived tables.
                                  original column.
       -f, --fts TEXT             One or more columns to use to populate a full-
                                  text index
+      --shape TEXT               Custom shape for the DB table - format is
+                                 csvcol:dbcol(TYPE),...
       --version                  Show the version and exit.
       --help                     Show this message and exit.

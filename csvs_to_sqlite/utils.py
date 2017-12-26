@@ -3,6 +3,7 @@ import fnmatch
 import hashlib
 import pandas as pd
 import numpy as np
+import re
 import sqlite3
 
 
@@ -136,7 +137,7 @@ def drop_table(conn, table):
     conn.execute('DROP TABLE [{}]'.format(table))
 
 
-def get_create_table_sql(table_name, df, index=True, **extra_args):
+def get_create_table_sql(table_name, df, index=True, sql_type_overrides=None, **extra_args):
     # Create a temporary table with just the first row
     # We do this in memory because we just want to get the
     # CREATE TABLE statement
@@ -148,7 +149,7 @@ def get_create_table_sql(table_name, df, index=True, **extra_args):
     # will be incorrectly detected as being of DB type REAL when we want them
     # to be INTEGER instead.
     # http://pandas.pydata.org/pandas-docs/stable/gotchas.html#support-for-integer-na
-    sql_type_overrides = {}
+    sql_type_overrides = sql_type_overrides or {}
     if isinstance(df, pd.DataFrame):
         columns_and_types = df.dtypes.iteritems()
     elif isinstance(df, pd.Series):
@@ -180,8 +181,8 @@ def get_create_table_sql(table_name, df, index=True, **extra_args):
     return sql, columns
 
 
-def to_sql_with_foreign_keys(conn, df, name, foreign_keys):
-    create_sql, columns = get_create_table_sql(name, df, index=False)
+def to_sql_with_foreign_keys(conn, df, name, foreign_keys, sql_type_overrides=None):
+    create_sql, columns = get_create_table_sql(name, df, index=False, sql_type_overrides=sql_type_overrides)
     foreign_key_bits = []
     index_bits = []
     for column, (table, value_column) in foreign_keys.items():
@@ -297,3 +298,57 @@ def generate_and_populate_fts(conn, created_tables, cols, foreign_keys):
             )
         )
     conn.executescript(';\n'.join(sql))
+
+
+type_re = re.compile(r'\((real|integer|text|blob|numeric)\)$', re.I)
+
+
+def parse_shape(shape):
+    # Shape is format 'county:Cty,votes:Vts(REAL)'
+    defs = [b.strip() for b in shape.split(',')]
+    defns = []
+    for defn in defs:
+        # Is there a type defined?
+        type_override = None
+        m = type_re.search(defn)
+        if m:
+            type_override = m.group(1)
+            defn = type_re.sub('', defn)
+        # Is this a rename?
+        if ':' in defn:
+            csv_name, db_name = defn.split(':', 1)
+        else:
+            csv_name, db_name = defn, defn
+        defns.append({
+            'csv_name': csv_name,
+            'db_name': db_name,
+            'type_override': type_override,
+        })
+    return defns
+
+
+def apply_shape(df, shape):
+    # Shape is format 'county:Cty,votes:Vts(REAL)'
+    # Applies changes in place, returns dtype= arg for to_sql
+    if not shape:
+        return None
+    defns = parse_shape(shape)
+    # Drop any columns we don't want
+    cols_to_keep = [d['csv_name'] for d in defns]
+    cols_to_drop = [c for c in df.columns if c not in cols_to_keep]
+    if cols_to_drop:
+        df.drop(cols_to_drop, axis=1, inplace=True)
+    # Apply column renames
+    renames = {
+        d['csv_name']: d['db_name']
+        for d in defns
+        if d['csv_name'] != d['db_name']
+    }
+    if renames:
+        df.rename(columns=renames, inplace=True)
+    # Return type overrides, if any
+    return {
+        d['db_name']: d['type_override']
+        for d in defns
+        if d['type_override']
+    }

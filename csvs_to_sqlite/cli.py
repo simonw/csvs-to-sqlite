@@ -4,6 +4,7 @@ import click
 from .utils import (
     LoadCsvError,
     LookupTable,
+    apply_shape,
     best_fts_version,
     csvs_from_paths,
     generate_and_populate_fts,
@@ -46,8 +47,9 @@ import sqlite3
 @click.option('--fts', '-f', multiple=True, help=(
     "One or more columns to use to populate a full-text index"
 ))
+@click.option('--shape', help='Custom shape for the DB table - format is csvcol:dbcol(TYPE),...', default=None)
 @click.version_option()
-def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, fts):
+def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, fts, shape):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -72,10 +74,12 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, e
 
     dataframes = []
     csvs = csvs_from_paths(paths)
+    sql_type_overrides = None
     for name, path in csvs.items():
         try:
             df = load_csv(path, separator, skip_errors, quoting)
             df.table_name = table or name
+            sql_type_overrides = apply_shape(df, shape)
             dataframes.append(df)
         except LoadCsvError as e:
             click.echo('Could not load {}: {}'.format(
@@ -109,7 +113,7 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, e
             if replace_tables and table_exists(conn, df.table_name):
                 drop_table(conn, df.table_name)
             to_sql_with_foreign_keys(
-                conn, df, df.table_name, foreign_keys
+                conn, df, df.table_name, foreign_keys, sql_type_overrides
             )
             created_tables[df.table_name] = df
 
