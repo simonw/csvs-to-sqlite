@@ -303,3 +303,30 @@ def test_filename_column_with_shape():
         ] == conn.execute(
             'select Cty, Vts, source from test limit 1'
         ).fetchall()
+
+
+def test_shape_with_extract_columns():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV)
+        result = runner.invoke(
+            cli.cli, [
+                'test.csv', 'test.db',
+                '--filename-column', 'Source',
+                '--shape', 'county:Cty,votes:Vts',
+                '-c', 'Cty', '-c', 'Vts', '-c', 'Source'
+            ]
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('test.db')
+        assert [
+            ('Yolo', 41, 'test'),
+        ] == conn.execute('''
+            select
+                Cty.value, Vts.value, Source.value
+            from test
+                left join Cty on test.Cty = Cty.id
+                left join Vts on test.Vts = Vts.id
+                left join Source on test.Source = Source.id
+            limit 1
+        ''').fetchall()

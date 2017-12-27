@@ -84,7 +84,7 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, e
             if filename_column:
                 df[filename_column] = name
                 if shape:
-                    shape += ',source'
+                    shape += ',{}'.format(filename_column)
             sql_type_overrides = apply_shape(df, shape)
             dataframes.append(df)
         except LoadCsvError as e:
