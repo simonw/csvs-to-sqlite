@@ -130,6 +130,8 @@ They will be populated with IDs that reference the new derived tables.
                                  original column.
       -f, --fts TEXT             One or more columns to use to populate a full-
                                  text index
+      -i, --index TEXT           Add index on this column (or a compound index
+                                 with -i col1,col2)
       --shape TEXT               Custom shape for the DB table - format is
                                  csvcol:dbcol(TYPE),...
       --filename-column TEXT     Add a column with this name and populate with CSV

@@ -364,3 +364,17 @@ def apply_shape(df, shape):
         for d in defns
         if d['type_override']
     }
+
+
+def add_index(conn, table_name, index):
+    columns_to_index = [b.strip() for b in index.split(',')]
+    # Figure out columns in table so we can sanity check this
+    cursor = conn.execute('select * from [{}] limit 0'.format(table_name))
+    columns = [r[0] for r in cursor.description]
+    if all([(c in columns) for c in columns_to_index]):
+        sql = 'CREATE INDEX ["{}_{}"] ON [{}]("{}");'.format(
+            table_name, '_'.join(columns_to_index),
+            table_name,
+            '", "'.join(columns_to_index)
+        )
+        conn.execute(sql)

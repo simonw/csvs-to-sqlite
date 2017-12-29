@@ -330,3 +330,23 @@ def test_shape_with_extract_columns():
                 left join Source on test.Source = Source.id
             limit 1
         ''').fetchall()
+
+
+def test_custom_indexes():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV)
+        result = runner.invoke(
+            cli.cli, [
+                'test.csv', 'test.db',
+                '--index', 'county', '-i', 'party,candidate'
+            ]
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('test.db')
+        assert [
+            ('"test_county"', 'test'),
+            ('"test_party_candidate"', 'test'),
+        ] == conn.execute(
+            'select name, tbl_name from sqlite_master where type = "index" order by name'
+        ).fetchall()

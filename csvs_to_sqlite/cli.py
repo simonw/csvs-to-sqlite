@@ -4,6 +4,7 @@ import click
 from .utils import (
     LoadCsvError,
     LookupTable,
+    add_index,
     apply_shape,
     best_fts_version,
     csvs_from_paths,
@@ -47,11 +48,14 @@ import sqlite3
 @click.option('--fts', '-f', multiple=True, help=(
     "One or more columns to use to populate a full-text index"
 ))
+@click.option('--index', '-i', multiple=True, help=(
+    "Add index on this column (or a compound index with -i col1,col2)"
+))
 @click.option('--shape', help='Custom shape for the DB table - format is csvcol:dbcol(TYPE),...', default=None)
 @click.option('--filename-column', help='Add a column with this name and populate with CSV file name', default=None)
 @click.option('--no-index-fks', 'no_index_fks', is_flag=True, help='Skip adding index to foreign key columns created using --extract-column (default is to add them)')
 @click.version_option()
-def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, fts, shape, filename_column, no_index_fks):
+def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, fts, index, shape, filename_column, no_index_fks):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -131,6 +135,9 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, e
                     index_fks=not no_index_fks
                 )
                 created_tables[df.table_name] = df
+            if index:
+                for index_defn in index:
+                    add_index(conn, df.table_name, index_defn)
 
     # Create FTS tables
     if fts:
