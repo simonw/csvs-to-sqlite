@@ -45,10 +45,15 @@ def test_refactor_dataframes():
         'name': 'Owen',
         'score': 0.7,
     }])
-    output = utils.refactor_dataframes([df], {'name': ('People', 'first_name')})
-    assert 2 == len(output)
-    lookup_table, dataframe = output
-    assert {1: 'Terry', 2: 'Owen'} == lookup_table.id_to_value
+    conn = sqlite3.connect(':memory:')
+    output = utils.refactor_dataframes(conn, [df], {'name': ('People', 'first_name')})
+    assert 1 == len(output)
+    dataframe = output[0]
+    # There should be a 'People' table in sqlite
+    assert [
+        (1, 'Terry'),
+        (2, 'Owen'),
+    ] == conn.execute('select id, first_name from People').fetchall()
     assert (
         '   name  score\n'
         '0     1    0.5\n'

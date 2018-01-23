@@ -10,6 +10,7 @@ setup(
     install_requires=[
         'click==6.7',
         'pandas==0.20.3',
+        'py-lru-cache==0.1.4',
         'six',
     ],
     setup_requires=['pytest-runner'],
