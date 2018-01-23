@@ -111,33 +111,28 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, e
 
     # Now we have loaded the dataframes, we can refactor them
     created_tables = {}
-    refactored = refactor_dataframes(dataframes, foreign_keys)
+    refactored = refactor_dataframes(conn, dataframes, foreign_keys)
     for df in refactored:
-        if isinstance(df, LookupTable):
+        # This is a bit trickier because we need to
+        # create the table with extra SQL for foreign keys
+        if replace_tables and table_exists(conn, df.table_name):
+            drop_table(conn, df.table_name)
+        if table_exists(conn, df.table_name):
             df.to_sql(
-                df.table_name, conn
+                df.table_name,
+                conn,
+                if_exists='append',
+                index=False,
             )
         else:
-            # This is a bit trickier because we need to
-            # create the table with extra SQL for foreign keys
-            if replace_tables and table_exists(conn, df.table_name):
-                drop_table(conn, df.table_name)
-            if table_exists(conn, df.table_name):
-                df.to_sql(
-                    df.table_name,
-                    conn,
-                    if_exists='append',
-                    index=False,
-                )
-            else:
-                to_sql_with_foreign_keys(
-                    conn, df, df.table_name, foreign_keys, sql_type_overrides,
-                    index_fks=not no_index_fks
-                )
-                created_tables[df.table_name] = df
-            if index:
-                for index_defn in index:
-                    add_index(conn, df.table_name, index_defn)
+            to_sql_with_foreign_keys(
+                conn, df, df.table_name, foreign_keys, sql_type_overrides,
+                index_fks=not no_index_fks
+            )
+            created_tables[df.table_name] = df
+        if index:
+            for index_defn in index:
+                add_index(conn, df.table_name, index_defn)
 
     # Create FTS tables
     if fts:

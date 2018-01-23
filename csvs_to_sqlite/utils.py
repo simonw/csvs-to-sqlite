@@ -1,6 +1,7 @@
 import os
 import fnmatch
 import hashlib
+import lru
 import pandas as pd
 import numpy as np
 import re
@@ -67,55 +68,75 @@ def csvs_from_paths(paths):
 
 
 class LookupTable:
-    # This should probably be a pandas Series or DataFrame
-    def __init__(self, table_name, value_column):
+    def __init__(self, conn, table_name, value_column):
+        self.conn = conn
         self.table_name = table_name
         self.value_column = value_column
-        self.next_id = 1
-        self.id_to_value = {}
-        self.value_to_id = {}
+        self.cache = lru.LRUCacheDict(max_size=1000)
+        self.ensure_table_exists()
+
+    def ensure_table_exists(self):
+        if not self.conn.execute('''
+            SELECT name
+            FROM sqlite_master
+            WHERE type='table'
+            AND name=?
+        ''', (self.table_name,)).fetchall():
+            create_sql = '''
+                CREATE TABLE "{table_name}" (
+                    "id" INTEGER PRIMARY KEY,
+                    "{value_column}" TEXT
+                );
+            '''.format(
+                table_name=self.table_name,
+                value_column=self.value_column,
+            )
+            self.conn.execute(create_sql)
 
     def __repr__(self):
         return '<{}: {} rows>'.format(
-            self.table_name, len(self.id_to_value)
+            self.table_name, self.conn.execute(
+                'select count(*) from "{}"'.format(self.table_name)
+            ).fetchone()[0]
         )
 
     def id_for_value(self, value):
         if pd.isnull(value):
             return None
+        # value should be a string
+        if not isinstance(value, six.string_types):
+            if isinstance(value, float):
+                value = '{0:g}'.format(value)
+            else:
+                value = six.text_type(value)
         try:
-            return self.value_to_id[value]
+            # First try our in-memory cache
+            return self.cache[value]
         except KeyError:
-            id = self.next_id
-            self.id_to_value[id] = value
-            self.value_to_id[value] = id
-            self.next_id += 1
+            # Next try the database table
+            sql = 'SELECT id FROM "{table_name}" WHERE "{value_column}"=?'.format(
+                table_name=self.table_name,
+                value_column=self.value_column,
+            )
+            result = self.conn.execute(sql, (value,)).fetchall()
+            if result:
+                id = result[0][0]
+            else:
+                # Not in DB! Insert it
+                cursor = self.conn.cursor()
+                insert_sql = '''
+                    INSERT INTO "{table_name}" ("{value_column}") VALUES (?);
+                '''.format(
+                    table_name=self.table_name,
+                    value_column=self.value_column,
+                )
+                cursor.execute(insert_sql, (value,))
+                id = cursor.lastrowid
+            self.cache[value] = id
             return id
 
-    def to_sql(self, name, conn):
-        create_sql, columns = get_create_table_sql(name, pd.Series(
-            self.id_to_value,
-            name=self.value_column,
-        ), index_label='id')
-        # This table does not have a primary key. Let's fix that:
-        before, after = create_sql.split('"id" INTEGER', 1)
-        create_sql = '{} "id" INTEGER PRIMARY KEY {}'.format(
-            before, after,
-        )
-        conn.executescript(create_sql)
-        # Now that we have created the table, insert the rows:
-        pd.Series(
-            self.id_to_value,
-            name=self.value_column,
-        ).to_sql(
-            name,
-            conn,
-            if_exists='append',
-            index_label='id'
-        )
 
-
-def refactor_dataframes(dataframes, foreign_keys):
+def refactor_dataframes(conn, dataframes, foreign_keys):
     lookup_tables = {}
     for column, (table_name, value_column) in foreign_keys.items():
         # Now apply this to the dataframes
@@ -124,6 +145,7 @@ def refactor_dataframes(dataframes, foreign_keys):
                 lookup_table = lookup_tables.get(table_name)
                 if lookup_table is None:
                     lookup_table = LookupTable(
+                        conn=conn,
                         table_name=table_name,
                         value_column=value_column,
                     )
@@ -131,7 +153,7 @@ def refactor_dataframes(dataframes, foreign_keys):
                 dataframe[column] = dataframe[column].apply(
                     lookup_table.id_for_value
                 )
-    return list(lookup_tables.values()) + dataframes
+    return dataframes
 
 
 def table_exists(conn, table):
