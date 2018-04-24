@@ -16,6 +16,13 @@ The Rock,Sean Connery,Nicolas Cage
 National Treasure,Nicolas Cage,Diane Kruger
 Troy,Diane Kruger,Orlando Bloom'''
 
+CSV_DATES = '''headline,date,datetime
+First headline,3rd May 2017,10pm on April 4 1938
+Second headline,04/30/2005,5:45 10 December 2009'''
+
+CSV_DATES_CUSTOM_FORMAT = '''headline,date
+Custom format,03/02/01'''
+
 
 def test_flat():
     runner = CliRunner()
@@ -350,3 +357,46 @@ def test_custom_indexes():
         ] == conn.execute(
             'select name, tbl_name from sqlite_master where type = "index" order by name'
         ).fetchall()
+
+
+def test_dates_and_datetimes():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV_DATES)
+        result = runner.invoke(
+            cli.cli, [
+                'test.csv', 'test.db', '-d', 'date', '-dt', 'datetime'
+            ]
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('test.db')
+        expected = [
+            ('First headline', '2017-05-03', '1938-04-04T22:00:00'),
+            ('Second headline', '2005-04-30', '2009-12-10T05:45:00'),
+        ]
+        actual = conn.execute(
+            'select * from test'
+        ).fetchall()
+        assert expected == actual
+
+
+def test_dates_custom_formats():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV_DATES_CUSTOM_FORMAT)
+        result = runner.invoke(
+            cli.cli, [
+                'test.csv', 'test.db', '-d', 'date',
+                '-df', '%y/%d/%m'
+            ]
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('test.db')
+        # Input was 03/02/01
+        expected = [
+            ('Custom format', '2003-01-02'),
+        ]
+        actual = conn.execute(
+            'select * from test'
+        ).fetchall()
+        assert expected == actual

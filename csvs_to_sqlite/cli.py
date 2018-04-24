@@ -5,6 +5,7 @@ from .utils import (
     LoadCsvError,
     LookupTable,
     add_index,
+    apply_dates_and_datetimes,
     apply_shape,
     best_fts_version,
     csvs_from_paths,
@@ -45,6 +46,15 @@ import sqlite3
     "primary key and a state_name column containing the strings "
     "from the original column."
 ))
+@click.option('--date', '-d', multiple=True, help=(
+    "One or more columns to parse into ISO formatted dates"
+))
+@click.option('--datetime', '-dt', multiple=True, help=(
+    "One or more columns to parse into ISO formatted datetimes"
+))
+@click.option('--datetime-format', '-df', multiple=True, help=(
+    "One or more custom date format strings to try when parsing dates/datetimes"
+))
 @click.option('--fts', '-f', multiple=True, help=(
     "One or more columns to use to populate a full-text index"
 ))
@@ -55,7 +65,7 @@ import sqlite3
 @click.option('--filename-column', help='Add a column with this name and populate with CSV file name', default=None)
 @click.option('--no-index-fks', 'no_index_fks', is_flag=True, help='Skip adding index to foreign key columns created using --extract-column (default is to add them)')
 @click.version_option()
-def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, fts, index, shape, filename_column, no_index_fks):
+def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, date, datetime, datetime_format, fts, index, shape, filename_column, no_index_fks):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -90,6 +100,7 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, e
                 if shape:
                     shape += ',{}'.format(filename_column)
             sql_type_overrides = apply_shape(df, shape)
+            apply_dates_and_datetimes(df, date, datetime, datetime_format)
             dataframes.append(df)
         except LoadCsvError as e:
             click.echo('Could not load {}: {}'.format(

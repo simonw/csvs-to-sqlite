@@ -9,6 +9,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'click==6.7',
+        'dateparser==0.7.0',
         'pandas==0.20.3',
         'py-lru-cache==0.1.4',
         'six',

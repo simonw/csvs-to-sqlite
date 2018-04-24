@@ -1,3 +1,4 @@
+import dateparser
 import os
 import fnmatch
 import hashlib
@@ -400,3 +401,24 @@ def add_index(conn, table_name, index):
             '", "'.join(columns_to_index)
         )
         conn.execute(sql)
+
+
+def apply_dates_and_datetimes(df, date_cols, datetime_cols, datetime_formats):
+    def parse_datetime(datestring, force_date=False):
+        if pd.isnull(datestring):
+            return datestring
+        dt = dateparser.parse(
+            datestring,
+            date_formats=datetime_formats,
+        )
+        if force_date:
+            return dt.date().isoformat()
+        else:
+            return dt.isoformat()
+
+    for date_col in date_cols:
+        df[date_col] = df[date_col].apply(
+            lambda s: parse_datetime(s, force_date=True)
+        )
+    for datetime_col in datetime_cols:
+        df[datetime_col] = df[datetime_col].apply(parse_datetime)
