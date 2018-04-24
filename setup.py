@@ -1,10 +1,21 @@
 from setuptools import setup, find_packages
+import os
+
+
+def get_long_description():
+    with open(os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), 'README.md'
+    ), encoding='utf8') as fp:
+        return fp.read()
+
 
 setup(
     name='csvs_to_sqlite',
     description='Convert CSV files into a SQLite database',
+    long_description=get_long_description(),
+    long_description_content_type='text/markdown',
     author='Simon Willison',
-    version='0.7',
+    version='0.8',
     license='Apache License, Version 2.0',
     packages=find_packages(),
     install_requires=[
