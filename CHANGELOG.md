@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.8.1 (2018-04-24)
+------------------
+- Updated README and CHANGELOG, tweaked --help output
+
 0.8 (2018-04-24)
 ----------------
 - `-d` and `-df` options for specifying date/datetime columns, closes #33
