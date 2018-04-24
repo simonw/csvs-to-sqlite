@@ -1,6 +1,37 @@
 Changelog
 =========
 
+0.8 (2018-04-24)
+----------------
+- `-d` and `-df` options for specifying date/datetime columns, closes #33
+- Maintain lookup tables in SQLite, refs #17
+- `--index` option to specify which columns to index, closes #24
+- Test confirming `--shape` and `--filename-column` and `-c` work together #25
+- Use usecols when loading CSV if shape specified
+- `--filename-column` is now compatible with `--shape`, closes #10
+- `--no-index-fks` option
+
+  By default, csvs-to-sqlite creates an index for every foreign key column that is
+  added using the `--extract-column` option.
+
+  For large tables, this can dramatically increase the size of the resulting
+  database file on disk. The new `--no-index-fks` option allows you to disable
+  this feature to save on file size.
+
+  Refs #24 which will allow you to explicitly list which columns SHOULD have
+  an index created.
+- Added `--filename-column` option, refs #10
+- Fixes for Python 2, refs #25
+- Implemented new `--shape` option - refs #25
+- `--table` option for specifying table to write to, refs #10
+- Updated README to cover `--skip-errors`, refs #20
+- Add `--skip-errors` option (#20) [Jani Monoses]
+- Less verbosity (#19) [Jani Monoses]
+
+  Only log `extract_columns` info when that option is passed.
+- Add option for field quoting behaviour (#15) [Jani Monoses]
+
+
 0.7 (2017-11-25)
 ----------------
 - Add -s option to specify input field separator (#13) [Jani Monoses]

@@ -106,37 +106,43 @@ They will be populated with IDs that reference the new derived tables.
       DBNAME: name of the SQLite database file to create
 
     Options:
-      -s, --separator TEXT       Field separator in input .csv
-      -q, --quoting INTEGER      Control field quoting behavior per csv.QUOTE_*
-                                 constants. Use one of QUOTE_MINIMAL (0),
-                                 QUOTE_ALL (1), QUOTE_NONNUMERIC (2) or QUOTE_NONE
-                                 (3).
-      --skip-errors              Skip lines with too many fields instead of
-                                 stopping the import
-      --replace-tables           Replace tables if they already exist
-      -t, --table TEXT           Table to use (instead of using CSV filename)
-      -c, --extract-column TEXT  One or more columns to 'extract' into a separate
-                                 lookup table. If you pass a simple column name
-                                 that column will be replaced with integer foreign
-                                 key references to a new table of that name. You
-                                 can customize the name of the table like so:
-
-                                     --extract-column state:States:state_name
-
-                                 This will pull unique values from the 'state'
-                                 column and use them to populate a new 'States'
-                                 table, with an id column primary key and a
-                                 state_name column containing the strings from the
-                                 original column.
-      -f, --fts TEXT             One or more columns to use to populate a full-
-                                 text index
-      -i, --index TEXT           Add index on this column (or a compound index
-                                 with -i col1,col2)
-      --shape TEXT               Custom shape for the DB table - format is
-                                 csvcol:dbcol(TYPE),...
-      --filename-column TEXT     Add a column with this name and populate with CSV
-                                 file name
-      --no-index-fks             Skip adding index to foreign key columns created
-                                 using --extract-column (default is to add them)
-      --version                  Show the version and exit.
-      --help                     Show this message and exit.
+      -s, --separator TEXT         Field separator in input .csv
+      -q, --quoting INTEGER        Control field quoting behavior per csv.QUOTE_*
+                                   constants. Use one of QUOTE_MINIMAL (0),
+                                   QUOTE_ALL (1), QUOTE_NONNUMERIC (2) or
+                                   QUOTE_NONE (3).
+      --skip-errors                Skip lines with too many fields instead of
+                                   stopping the import
+      --replace-tables             Replace tables if they already exist
+      -t, --table TEXT             Table to use (instead of using CSV filename)
+      -c, --extract-column TEXT    One or more columns to 'extract' into a
+                                   separate lookup table. If you pass a simple
+                                   column name that column will be replaced with
+                                   integer foreign key references to a new table
+                                   of that name. You can customize the name of the
+                                   table like so:
+                                       state:States:state_name
+                                   This will pull unique values from the 'state'
+                                   column and use them to populate a new 'States'
+                                   table, with an id column primary key and a
+                                   state_name column containing the strings from
+                                   the original column.
+      -d, --date TEXT              One or more columns to parse into ISO formatted
+                                   dates
+      -dt, --datetime TEXT         One or more columns to parse into ISO formatted
+                                   datetimes
+      -df, --datetime-format TEXT  One or more custom date format strings to try
+                                   when parsing dates/datetimes
+      -f, --fts TEXT               One or more columns to use to populate a full-
+                                   text index
+      -i, --index TEXT             Add index on this column (or a compound index
+                                   with -i col1,col2)
+      --shape TEXT                 Custom shape for the DB table - format is
+                                   csvcol:dbcol(TYPE),...
+      --filename-column TEXT       Add a column with this name and populate with
+                                   CSV file name
+      --no-index-fks               Skip adding index to foreign key columns
+                                   created using --extract-column (default is to
+                                   add them)
+      --version                    Show the version and exit.
+      --help                       Show this message and exit.
