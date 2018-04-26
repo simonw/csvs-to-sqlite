@@ -73,6 +73,10 @@ class LookupTable:
         self.conn = conn
         self.table_name = table_name
         self.value_column = value_column
+        self.fts_table_name = '{table_name}_{value_column}_fts'.format(
+            table_name=table_name,
+            value_column=value_column,
+        )
         self.cache = lru.LRUCacheDict(max_size=1000)
         self.ensure_table_exists()
 
@@ -93,6 +97,16 @@ class LookupTable:
                 value_column=self.value_column,
             )
             self.conn.execute(create_sql)
+            # Add a FTS index on the value_column
+            self.conn.execute('''
+                CREATE VIRTUAL TABLE "{fts_table_name}"
+                USING {fts_version} ({value_column}, content="{table_name}");
+            '''.format(
+                fts_version=best_fts_version(),
+                fts_table_name=self.fts_table_name,
+                table_name=self.table_name,
+                value_column=self.value_column,
+            ))
 
     def __repr__(self):
         return '<{}: {} rows>'.format(
@@ -125,14 +139,23 @@ class LookupTable:
             else:
                 # Not in DB! Insert it
                 cursor = self.conn.cursor()
-                insert_sql = '''
+                cursor.execute('''
                     INSERT INTO "{table_name}" ("{value_column}") VALUES (?);
                 '''.format(
                     table_name=self.table_name,
                     value_column=self.value_column,
-                )
-                cursor.execute(insert_sql, (value,))
+                ), (value, ))
                 id = cursor.lastrowid
+                # And update FTS index
+                sql = '''
+                    INSERT INTO "{fts_table_name}" (rowid, "{value_column}") VALUES (?, ?);
+                '''.format(
+                    fts_table_name=self.fts_table_name,
+                    value_column=self.value_column,
+                )
+                print(sql, id, value)
+                cursor.execute(sql, (id, value))
+
             self.cache[value] = id
             return id
 
