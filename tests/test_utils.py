@@ -46,7 +46,7 @@ def test_refactor_dataframes():
         'score': 0.7,
     }])
     conn = sqlite3.connect(':memory:')
-    output = utils.refactor_dataframes(conn, [df], {'name': ('People', 'first_name')})
+    output = utils.refactor_dataframes(conn, [df], {'name': ('People', 'first_name')}, False)
     assert 1 == len(output)
     dataframe = output[0]
     # There should be a 'People' table in sqlite

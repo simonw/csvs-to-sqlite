@@ -62,8 +62,27 @@ import sqlite3
 @click.option('--shape', help='Custom shape for the DB table - format is csvcol:dbcol(TYPE),...', default=None)
 @click.option('--filename-column', help='Add a column with this name and populate with CSV file name', default=None)
 @click.option('--no-index-fks', 'no_index_fks', is_flag=True, help='Skip adding index to foreign key columns created using --extract-column (default is to add them)')
+@click.option('--no-fulltext-fks', 'no_fulltext_fks', is_flag=True, help='Skip adding full-text index on values extracted using --extract-column (default is to add them)')
 @click.version_option()
-def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, extract_column, date, datetime, datetime_format, fts, index, shape, filename_column, no_index_fks):
+def cli(
+    paths,
+    dbname,
+    separator,
+    quoting,
+    skip_errors,
+    replace_tables,
+    table,
+    extract_column,
+    date,
+    datetime,
+    datetime_format,
+    fts,
+    index,
+    shape,
+    filename_column,
+    no_index_fks,
+    no_fulltext_fks,
+):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
 
@@ -120,7 +139,7 @@ def cli(paths, dbname, separator, quoting, skip_errors, replace_tables, table, e
 
     # Now we have loaded the dataframes, we can refactor them
     created_tables = {}
-    refactored = refactor_dataframes(conn, dataframes, foreign_keys)
+    refactored = refactor_dataframes(conn, dataframes, foreign_keys, not no_fulltext_fks)
     for df in refactored:
         # This is a bit trickier because we need to
         # create the table with extra SQL for foreign keys
