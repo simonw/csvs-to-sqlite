@@ -69,10 +69,15 @@ def csvs_from_paths(paths):
 
 
 class LookupTable:
-    def __init__(self, conn, table_name, value_column):
+    def __init__(self, conn, table_name, value_column, index_fts):
         self.conn = conn
         self.table_name = table_name
         self.value_column = value_column
+        self.fts_table_name = '{table_name}_{value_column}_fts'.format(
+            table_name=table_name,
+            value_column=value_column,
+        )
+        self.index_fts = index_fts
         self.cache = lru.LRUCacheDict(max_size=1000)
         self.ensure_table_exists()
 
@@ -93,6 +98,17 @@ class LookupTable:
                 value_column=self.value_column,
             )
             self.conn.execute(create_sql)
+            if self.index_fts:
+                # Add a FTS index on the value_column
+                self.conn.execute('''
+                    CREATE VIRTUAL TABLE "{fts_table_name}"
+                    USING {fts_version} ({value_column}, content="{table_name}");
+                '''.format(
+                    fts_version=best_fts_version(),
+                    fts_table_name=self.fts_table_name,
+                    table_name=self.table_name,
+                    value_column=self.value_column,
+                ))
 
     def __repr__(self):
         return '<{}: {} rows>'.format(
@@ -125,19 +141,28 @@ class LookupTable:
             else:
                 # Not in DB! Insert it
                 cursor = self.conn.cursor()
-                insert_sql = '''
+                cursor.execute('''
                     INSERT INTO "{table_name}" ("{value_column}") VALUES (?);
                 '''.format(
                     table_name=self.table_name,
                     value_column=self.value_column,
-                )
-                cursor.execute(insert_sql, (value,))
+                ), (value, ))
                 id = cursor.lastrowid
+                if self.index_fts:
+                    # And update FTS index
+                    sql = '''
+                        INSERT INTO "{fts_table_name}" (rowid, "{value_column}") VALUES (?, ?);
+                    '''.format(
+                        fts_table_name=self.fts_table_name,
+                        value_column=self.value_column,
+                    )
+                    cursor.execute(sql, (id, value))
+
             self.cache[value] = id
             return id
 
 
-def refactor_dataframes(conn, dataframes, foreign_keys):
+def refactor_dataframes(conn, dataframes, foreign_keys, index_fts):
     lookup_tables = {}
     for column, (table_name, value_column) in foreign_keys.items():
         # Now apply this to the dataframes
@@ -149,6 +174,7 @@ def refactor_dataframes(conn, dataframes, foreign_keys):
                         conn=conn,
                         table_name=table_name,
                         value_column=value_column,
+                        index_fts=index_fts,
                     )
                     lookup_tables[table_name] = lookup_table
                 dataframe[column] = dataframe[column].apply(

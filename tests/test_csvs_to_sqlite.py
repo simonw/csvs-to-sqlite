@@ -122,6 +122,17 @@ def test_extract_columns():
             (6, 'Ryan K. Brown'),
         ] == conn.execute('select * from candidate').fetchall()
 
+        # Check that a FTS index was created for each extracted table
+        fts_tables = [r[0] for r in conn.execute("""
+            select name from sqlite_master
+            where type='table' and name like '%_fts'
+            and sql like '%USING FTS%'
+        """).fetchall()]
+        assert set(fts_tables) == {
+            'office_value_fts', 'district_value_fts',
+            'party_value_fts', 'candidate_value_fts'
+        }
+
 
 def test_fts():
     runner = CliRunner()
@@ -400,3 +411,22 @@ def test_dates_custom_formats():
             'select * from test'
         ).fetchall()
         assert expected == actual
+
+
+def test_extract_cols_no_fts():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('test.csv', 'w').write(CSV)
+        result = runner.invoke(
+            cli.cli, (
+                'test.csv fts-extracted.db -c office -c party -c candidate '
+                '-f party -f candidate --no-fulltext-fks'
+            ).split()
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('fts-extracted.db')
+        assert [('test_fts',)] == conn.execute('''
+            select name from sqlite_master
+            where type='table' and name like '%_fts'
+            and sql like '%USING FTS%'
+        ''').fetchall()
