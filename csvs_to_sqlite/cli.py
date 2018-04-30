@@ -53,6 +53,9 @@ import sqlite3
 @click.option('--datetime-format', '-df', multiple=True, help=(
     "One or more custom date format strings to try when parsing dates/datetimes"
 ))
+@click.option('--primary-key', '-pk', multiple=True, help=(
+    "One or more columns to use as the primary key"
+))
 @click.option('--fts', '-f', multiple=True, help=(
     "One or more columns to use to populate a full-text index"
 ))
@@ -76,6 +79,7 @@ def cli(
     date,
     datetime,
     datetime_format,
+    primary_key,
     fts,
     index,
     shape,
@@ -155,6 +159,7 @@ def cli(
         else:
             to_sql_with_foreign_keys(
                 conn, df, df.table_name, foreign_keys, sql_type_overrides,
+                primary_keys=primary_key,
                 index_fks=not no_index_fks
             )
             created_tables[df.table_name] = df

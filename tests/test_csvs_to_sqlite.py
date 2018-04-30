@@ -23,6 +23,10 @@ Second headline,04/30/2005,5:45 10 December 2009'''
 CSV_DATES_CUSTOM_FORMAT = '''headline,date
 Custom format,03/02/01'''
 
+CSV_CUSTOM_PRIMARY_KEYS = '''pk1,pk2,name
+one,one,11
+one,two,12
+two,one,21'''
 
 def test_flat():
     runner = CliRunner()
@@ -430,3 +434,22 @@ def test_extract_cols_no_fts():
             where type='table' and name like '%_fts'
             and sql like '%USING FTS%'
         ''').fetchall()
+
+
+def test_custom_primary_keys():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open('pks.csv', 'w').write(CSV_CUSTOM_PRIMARY_KEYS)
+        result = runner.invoke(
+            cli.cli, (
+                'pks.csv pks.db -pk pk1 --primary-key pk2'
+            ).split()
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect('pks.db')
+        pks = [
+            r[1]
+            for r in conn.execute('PRAGMA table_info("pks")').fetchall()
+            if r[-1]
+        ]
+        assert ['pk1', 'pk2'] == pks

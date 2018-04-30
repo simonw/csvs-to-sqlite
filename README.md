@@ -133,6 +133,7 @@ They will be populated with IDs that reference the new derived tables.
                                    datetimes
       -df, --datetime-format TEXT  One or more custom date format strings to try
                                    when parsing dates/datetimes
+      -pk, --primary-key TEXT      One or more columns to use as the primary key
       -f, --fts TEXT               One or more columns to use to populate a full-
                                    text index
       -i, --index TEXT             Add index on this column (or a compound index

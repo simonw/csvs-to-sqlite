@@ -194,7 +194,7 @@ def drop_table(conn, table):
     conn.execute('DROP TABLE [{}]'.format(table))
 
 
-def get_create_table_sql(table_name, df, index=True, sql_type_overrides=None, **extra_args):
+def get_create_table_sql(table_name, df, index=True, sql_type_overrides=None, primary_keys=None):
     # Create a temporary table with just the first row
     # We do this in memory because we just want to get the
     # CREATE TABLE statement
@@ -226,7 +226,7 @@ def get_create_table_sql(table_name, df, index=True, sql_type_overrides=None, **
                 # Everything was NaN or an integer-float - switch type:
                 sql_type_overrides[column] = 'INTEGER'
 
-    df[:1].to_sql(table_name, conn, index=index, dtype=sql_type_overrides, **extra_args)
+    df[:1].to_sql(table_name, conn, index=index, dtype=sql_type_overrides)
     sql = conn.execute(
         'select sql from sqlite_master where name = ?', [table_name]
     ).fetchone()[0]
@@ -235,11 +235,17 @@ def get_create_table_sql(table_name, df, index=True, sql_type_overrides=None, **
             'PRAGMA table_info([{}])'.format(table_name)
         )
     ]
+    if primary_keys:
+        # Rewrite SQL to add PRIMARY KEY (col1, col2) at end
+        assert sql[-1] == ')'
+        sql = sql[:-1] + '  ,PRIMARY KEY ({cols})\n)'.format(
+            cols=', '.join('[{}]'.format(col) for col in primary_keys)
+        )
     return sql, columns
 
 
-def to_sql_with_foreign_keys(conn, df, name, foreign_keys, sql_type_overrides=None, index_fks=False):
-    create_sql, columns = get_create_table_sql(name, df, index=False, sql_type_overrides=sql_type_overrides)
+def to_sql_with_foreign_keys(conn, df, name, foreign_keys, sql_type_overrides=None, primary_keys=None, index_fks=False):
+    create_sql, columns = get_create_table_sql(name, df, index=False, primary_keys=primary_keys, sql_type_overrides=sql_type_overrides)
     foreign_key_bits = []
     index_bits = []
     for column, (table, value_column) in foreign_keys.items():
