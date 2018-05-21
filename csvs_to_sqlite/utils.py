@@ -9,6 +9,11 @@ import re
 import six
 import sqlite3
 
+from urllib.parse import urlparse
+from urllib.parse import uses_relative, uses_netloc, uses_params
+
+import click
+
 
 class LoadCsvError(Exception):
     pass
@@ -39,7 +44,7 @@ def load_csv(filepath, separator, skip_errors, quoting, shape, encodings_to_try=
 def csvs_from_paths(paths):
     csvs = {}
 
-    def add_file(filepath):
+    def add_item(filepath, full_path=None):
         name = os.path.splitext(os.path.basename(filepath))[0]
         if name in csvs:
             i = 1
@@ -50,11 +55,16 @@ def csvs_from_paths(paths):
                     break
                 else:
                     i += 1
-        csvs[name] = filepath
+        if full_path is None:
+            csvs[name] = filepath
+        else:
+            csvs[name] = full_path
 
     for path in paths:
         if os.path.isfile(path):
-            add_file(path)
+            add_item(path)
+        elif _is_url(path):
+            add_item(urlparse(path).path, path)
         elif os.path.isdir(path):
             # Recursively seek out ALL csvs in directory
             for root, dirnames, filenames in os.walk(path):
@@ -66,6 +76,37 @@ def csvs_from_paths(paths):
                     csvs[namepath] = os.path.join(root, filename)
 
     return csvs
+
+
+def _is_url(possible_url):
+    valid_schemes = set(uses_relative + uses_netloc + uses_params)
+    valid_schemes.discard('')
+
+    try:
+        return urlparse(possible_url).scheme in valid_schemes
+    except:
+        return False
+
+
+class PathOrURL(click.Path):
+    """The PathOrURL type handles paths or URLs.
+
+    If the argument can be parsed as a URL, it will be treated as one.
+    Otherwise PathorURL behaves like click.Path.
+    """
+    def __init__(self, exists=False, file_okay=True, dir_okay=True,
+                 writable=False, readable=True, resolve_path=False,
+                 allow_dash=False, path_type=None):
+        super().__init__(exists=exists, file_okay=file_okay, dir_okay=dir_okay,
+                         writable=writable, readable=readable,
+                         resolve_path=resolve_path, allow_dash=allow_dash,
+                         path_type=path_type)
+
+    def convert(self, value, param, ctx):
+        if _is_url(value):
+            return self.coerce_path_result(value)
+        else:
+            return super().convert(value, param, ctx)
 
 
 class LookupTable:

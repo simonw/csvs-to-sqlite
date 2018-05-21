@@ -4,6 +4,7 @@ import click
 from .utils import (
     LoadCsvError,
     LookupTable,
+    PathOrURL,
     add_index,
     apply_dates_and_datetimes,
     apply_shape,
@@ -23,7 +24,7 @@ import sqlite3
 @click.command()
 @click.argument(
     'paths',
-    type=click.Path(exists=True),
+    type=PathOrURL(exists=True),
     nargs=-1,
     required=True,
 )
