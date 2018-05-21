@@ -9,8 +9,8 @@ import re
 import six
 import sqlite3
 
-from urllib.parse import urlparse
-from urllib.parse import uses_relative, uses_netloc, uses_params
+from six.moves.urllib.parse import urlparse
+from six.moves.urllib.parse import uses_relative, uses_netloc, uses_params
 
 import click
 
@@ -97,16 +97,18 @@ class PathOrURL(click.Path):
     def __init__(self, exists=False, file_okay=True, dir_okay=True,
                  writable=False, readable=True, resolve_path=False,
                  allow_dash=False, path_type=None):
-        super().__init__(exists=exists, file_okay=file_okay, dir_okay=dir_okay,
-                         writable=writable, readable=readable,
-                         resolve_path=resolve_path, allow_dash=allow_dash,
-                         path_type=path_type)
+        super(PathOrURL, self).__init__(exists=exists, file_okay=file_okay,
+                                        dir_okay=dir_okay,
+                                        writable=writable, readable=readable,
+                                        resolve_path=resolve_path,
+                                        allow_dash=allow_dash,
+                                        path_type=path_type)
 
     def convert(self, value, param, ctx):
         if _is_url(value):
             return self.coerce_path_result(value)
         else:
-            return super().convert(value, param, ctx)
+            return super(PathOrURL, self).convert(value, param, ctx)
 
 
 class LookupTable:
