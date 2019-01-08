@@ -24,7 +24,7 @@ def load_csv(filepath, separator, skip_errors, quoting, shape, encodings_to_try=
                 return pd.read_csv(
                     filepath, sep=separator, quoting=quoting,
                     error_bad_lines=not skip_errors, low_memory=True,
-                    encoding=encoding, usecols=usecols
+                    encoding=encoding, usecols=usecols, na_filter=False
                 )
             except UnicodeDecodeError:
                 continue
