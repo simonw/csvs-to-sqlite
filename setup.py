@@ -17,7 +17,7 @@ setup(
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="Simon Willison",
-    version="0.8.1",
+    version="0.9",
     license="Apache License, Version 2.0",
     packages=find_packages(),
     install_requires=[

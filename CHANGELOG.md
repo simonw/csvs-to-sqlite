@@ -1,6 +1,15 @@
 Changelog
 =========
 
+0.9 (2019-01-16)
+----------------
+- Support for loading CSVs directly from URLs, thanks @betatim - #38
+- New -pk/--primary-key options, closes #22
+- Create FTS index for extracted column values
+- Added --no-fulltext-fks option, closes #32
+- Now using black for code formatting
+- Bumped versions of dependencies
+
 0.8.1 (2018-04-24)
 ------------------
 - Updated README and CHANGELOG, tweaked --help output
