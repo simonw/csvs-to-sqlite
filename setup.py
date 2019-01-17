@@ -20,15 +20,15 @@ setup(
     license='Apache License, Version 2.0',
     packages=find_packages(),
     install_requires=[
-        'click==6.7',
-        'dateparser==0.7.0',
-        'pandas==0.20.3',
+        'click>=6.0.0',
+        'dateparser>=0.7.0',
+        'pandas>=0.23.4',
         'py-lru-cache==0.1.4',
         'six',
     ],
     setup_requires=['pytest-runner'],
     tests_require=[
-        'pytest==3.2.3',
+        'pytest>=4.1.1',
     ],
     entry_points='''
         [console_scripts]
