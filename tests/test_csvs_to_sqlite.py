@@ -3,83 +3,87 @@ from csvs_to_sqlite import cli
 from six import string_types, text_type
 import sqlite3
 
-CSV = '''county,precinct,office,district,party,candidate,votes
+CSV = """county,precinct,office,district,party,candidate,votes
 Yolo,100001,President,,LIB,Gary Johnson,41
 Yolo,100001,President,,PAF,Gloria Estela La Riva,8
 Yolo,100001,Proposition 51,,,No,398
 Yolo,100001,Proposition 51,,,Yes,460
 Yolo,100001,State Assembly,7,DEM,Kevin McCarty,572
-Yolo,100001,State Assembly,7,REP,Ryan K. Brown,291'''
+Yolo,100001,State Assembly,7,REP,Ryan K. Brown,291"""
 
-CSV_MULTI = '''film,actor_1,actor_2
+CSV_MULTI = """film,actor_1,actor_2
 The Rock,Sean Connery,Nicolas Cage
 National Treasure,Nicolas Cage,Diane Kruger
-Troy,Diane Kruger,Orlando Bloom'''
+Troy,Diane Kruger,Orlando Bloom"""
 
-CSV_DATES = '''headline,date,datetime
+CSV_DATES = """headline,date,datetime
 First headline,3rd May 2017,10pm on April 4 1938
-Second headline,04/30/2005,5:45 10 December 2009'''
+Second headline,04/30/2005,5:45 10 December 2009"""
 
-CSV_DATES_CUSTOM_FORMAT = '''headline,date
-Custom format,03/02/01'''
+CSV_DATES_CUSTOM_FORMAT = """headline,date
+Custom format,03/02/01"""
 
-CSV_CUSTOM_PRIMARY_KEYS = '''pk1,pk2,name
+CSV_CUSTOM_PRIMARY_KEYS = """pk1,pk2,name
 one,one,11
 one,two,12
-two,one,21'''
+two,one,21"""
+
 
 def test_flat():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
-        result = runner.invoke(cli.cli, ['test.csv', 'test.db'])
+        open("test.csv", "w").write(CSV)
+        result = runner.invoke(cli.cli, ["test.csv", "test.db"])
         assert result.exit_code == 0
-        assert result.output.strip().endswith('Created test.db from 1 CSV file')
-        conn = sqlite3.connect('test.db')
+        assert result.output.strip().endswith("Created test.db from 1 CSV file")
+        conn = sqlite3.connect("test.db")
         assert [
-            (0, 'county', 'TEXT', 0, None, 0),
-            (1, 'precinct', 'INTEGER', 0, None, 0),
-            (2, 'office', 'TEXT', 0, None, 0),
-            (3, 'district', 'INTEGER', 0, None, 0),
-            (4, 'party', 'TEXT', 0, None, 0),
-            (5, 'candidate', 'TEXT', 0, None, 0),
-            (6, 'votes', 'INTEGER', 0, None, 0)
-        ] == list(conn.execute('PRAGMA table_info(test)'))
-        rows = conn.execute('select * from test').fetchall()
+            (0, "county", "TEXT", 0, None, 0),
+            (1, "precinct", "INTEGER", 0, None, 0),
+            (2, "office", "TEXT", 0, None, 0),
+            (3, "district", "INTEGER", 0, None, 0),
+            (4, "party", "TEXT", 0, None, 0),
+            (5, "candidate", "TEXT", 0, None, 0),
+            (6, "votes", "INTEGER", 0, None, 0),
+        ] == list(conn.execute("PRAGMA table_info(test)"))
+        rows = conn.execute("select * from test").fetchall()
         assert [
-            ('Yolo', 100001, 'President', None, 'LIB', 'Gary Johnson', 41),
-            ('Yolo', 100001, 'President', None, 'PAF', 'Gloria Estela La Riva', 8),
-            ('Yolo', 100001, 'Proposition 51', None, None, 'No', 398),
-            ('Yolo', 100001, 'Proposition 51', None, None, 'Yes', 460),
-            ('Yolo', 100001, 'State Assembly', 7, 'DEM', 'Kevin McCarty', 572),
-            ('Yolo', 100001, 'State Assembly', 7, 'REP', 'Ryan K. Brown', 291)
+            ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41),
+            ("Yolo", 100001, "President", None, "PAF", "Gloria Estela La Riva", 8),
+            ("Yolo", 100001, "Proposition 51", None, None, "No", 398),
+            ("Yolo", 100001, "Proposition 51", None, None, "Yes", 460),
+            ("Yolo", 100001, "State Assembly", 7, "DEM", "Kevin McCarty", 572),
+            ("Yolo", 100001, "State Assembly", 7, "REP", "Ryan K. Brown", 291),
         ] == rows
         last_row = rows[-1]
-        for i, t in enumerate((string_types, int, string_types, int, string_types, string_types, int)):
+        for i, t in enumerate(
+            (string_types, int, string_types, int, string_types, string_types, int)
+        ):
             assert isinstance(last_row[i], t)
 
 
 def test_extract_columns():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
+        open("test.csv", "w").write(CSV)
         result = runner.invoke(
             cli.cli,
-            'test.csv extracted.db -c office -c district -c party -c candidate'.split()
+            "test.csv extracted.db -c office -c district -c party -c candidate".split(),
         )
         assert result.exit_code == 0
-        assert result.output.strip().endswith('Created extracted.db from 1 CSV file')
-        conn = sqlite3.connect('extracted.db')
+        assert result.output.strip().endswith("Created extracted.db from 1 CSV file")
+        conn = sqlite3.connect("extracted.db")
         assert [
-            (0, 'county', 'TEXT', 0, None, 0),
-            (1, 'precinct', 'INTEGER', 0, None, 0),
-            (2, 'office', 'INTEGER', 0, None, 0),
-            (3, 'district', 'INTEGER', 0, None, 0),
-            (4, 'party', 'INTEGER', 0, None, 0),
-            (5, 'candidate', 'INTEGER', 0, None, 0),
-            (6, 'votes', 'INTEGER', 0, None, 0)
-        ] == list(conn.execute('PRAGMA table_info(test)'))
-        rows = conn.execute('''
+            (0, "county", "TEXT", 0, None, 0),
+            (1, "precinct", "INTEGER", 0, None, 0),
+            (2, "office", "INTEGER", 0, None, 0),
+            (3, "district", "INTEGER", 0, None, 0),
+            (4, "party", "INTEGER", 0, None, 0),
+            (5, "candidate", "INTEGER", 0, None, 0),
+            (6, "votes", "INTEGER", 0, None, 0),
+        ] == list(conn.execute("PRAGMA table_info(test)"))
+        rows = conn.execute(
+            """
             select
                 county, precinct, office.value, district.value,
                 party.value, candidate.value, votes
@@ -89,85 +93,97 @@ def test_extract_columns():
                 left join party on test.party = party.id
                 left join candidate on test.candidate = candidate.id
             order by test.rowid
-        ''').fetchall()
+        """
+        ).fetchall()
         assert [
-            ('Yolo', 100001, 'President', None, 'LIB', 'Gary Johnson', 41),
-            ('Yolo', 100001, 'President', None, 'PAF', 'Gloria Estela La Riva', 8),
-            ('Yolo', 100001, 'Proposition 51', None, None, 'No', 398),
-            ('Yolo', 100001, 'Proposition 51', None, None, 'Yes', 460),
-            ('Yolo', 100001, 'State Assembly', '7', 'DEM', 'Kevin McCarty', 572),
-            ('Yolo', 100001, 'State Assembly', '7', 'REP', 'Ryan K. Brown', 291)
+            ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41),
+            ("Yolo", 100001, "President", None, "PAF", "Gloria Estela La Riva", 8),
+            ("Yolo", 100001, "Proposition 51", None, None, "No", 398),
+            ("Yolo", 100001, "Proposition 51", None, None, "Yes", 460),
+            ("Yolo", 100001, "State Assembly", "7", "DEM", "Kevin McCarty", 572),
+            ("Yolo", 100001, "State Assembly", "7", "REP", "Ryan K. Brown", 291),
         ] == rows
         last_row = rows[-1]
-        for i, t in enumerate((string_types, int, string_types, string_types, string_types, string_types, int)):
+        for i, t in enumerate(
+            (
+                string_types,
+                int,
+                string_types,
+                string_types,
+                string_types,
+                string_types,
+                int,
+            )
+        ):
             assert isinstance(last_row[i], t)
 
         # Check that the various foreign key tables have the right things in them
         assert [
-            (1, 'President'),
-            (2, 'Proposition 51'),
-            (3, 'State Assembly'),
-        ] == conn.execute('select * from office').fetchall()
+            (1, "President"),
+            (2, "Proposition 51"),
+            (3, "State Assembly"),
+        ] == conn.execute("select * from office").fetchall()
+        assert [(1, "7")] == conn.execute("select * from district").fetchall()
+        assert [(1, "LIB"), (2, "PAF"), (3, "DEM"), (4, "REP")] == conn.execute(
+            "select * from party"
+        ).fetchall()
         assert [
-            (1, '7'),
-        ] == conn.execute('select * from district').fetchall()
-        assert [
-            (1, 'LIB'),
-            (2, 'PAF'),
-            (3, 'DEM'),
-            (4, 'REP'),
-        ] == conn.execute('select * from party').fetchall()
-        assert [
-            (1, 'Gary Johnson'),
-            (2, 'Gloria Estela La Riva'),
-            (3, 'No'),
-            (4, 'Yes'),
-            (5, 'Kevin McCarty'),
-            (6, 'Ryan K. Brown'),
-        ] == conn.execute('select * from candidate').fetchall()
+            (1, "Gary Johnson"),
+            (2, "Gloria Estela La Riva"),
+            (3, "No"),
+            (4, "Yes"),
+            (5, "Kevin McCarty"),
+            (6, "Ryan K. Brown"),
+        ] == conn.execute("select * from candidate").fetchall()
 
         # Check that a FTS index was created for each extracted table
-        fts_tables = [r[0] for r in conn.execute("""
+        fts_tables = [
+            r[0]
+            for r in conn.execute(
+                """
             select name from sqlite_master
             where type='table' and name like '%_fts'
             and sql like '%USING FTS%'
-        """).fetchall()]
+        """
+            ).fetchall()
+        ]
         assert set(fts_tables) == {
-            'office_value_fts', 'district_value_fts',
-            'party_value_fts', 'candidate_value_fts'
+            "office_value_fts",
+            "district_value_fts",
+            "party_value_fts",
+            "candidate_value_fts",
         }
 
 
 def test_fts():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
+        open("test.csv", "w").write(CSV)
         result = runner.invoke(
-            cli.cli,
-            'test.csv fts.db -f office -f party -f candidate'.split()
+            cli.cli, "test.csv fts.db -f office -f party -f candidate".split()
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('fts.db')
-        assert [
-            ('Yolo', 100001, 'President', 'PAF', 'Gloria Estela La Riva'),
-        ] == conn.execute('''
+        conn = sqlite3.connect("fts.db")
+        assert (
+            [("Yolo", 100001, "President", "PAF", "Gloria Estela La Riva")]
+            == conn.execute(
+                """
             select county, precinct, office, party, candidate
             from test
             where rowid in (
                 select rowid from test_fts
                 where test_fts match 'president gloria'
             )
-        ''').fetchall()
+        """
+            ).fetchall()
+        )
 
 
 def test_fts_error_on_missing_columns():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
-        result = runner.invoke(
-            cli.cli,
-            'test.csv fts.db -f badcolumn'.split()
-        )
+        open("test.csv", "w").write(CSV)
+        result = runner.invoke(cli.cli, "test.csv fts.db -f badcolumn".split())
         assert result.exit_code != 0
         assert result.output.strip().endswith('FTS column "badcolumn" does not exist')
 
@@ -175,18 +191,20 @@ def test_fts_error_on_missing_columns():
 def test_fts_and_extract_columns():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
+        open("test.csv", "w").write(CSV)
         result = runner.invoke(
-            cli.cli, (
-                'test.csv fts-extracted.db -c office -c party -c candidate '
-                '-f party -f candidate'
-            ).split()
+            cli.cli,
+            (
+                "test.csv fts-extracted.db -c office -c party -c candidate "
+                "-f party -f candidate"
+            ).split(),
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('fts-extracted.db')
-        assert [
-            ('Yolo', 100001, 'President', 'PAF', 'Gloria Estela La Riva'),
-        ] == conn.execute('''
+        conn = sqlite3.connect("fts-extracted.db")
+        assert (
+            [("Yolo", 100001, "President", "PAF", "Gloria Estela La Riva")]
+            == conn.execute(
+                """
             select
                 county, precinct, office.value, party.value, candidate.value
             from test
@@ -197,38 +215,49 @@ def test_fts_and_extract_columns():
                 select rowid from test_fts
                 where test_fts match 'paf gloria'
             )
-        ''').fetchall()
+        """
+            ).fetchall()
+        )
 
 
 def test_fts_one_column_multiple_aliases():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV_MULTI)
+        open("test.csv", "w").write(CSV_MULTI)
         result = runner.invoke(
-            cli.cli, (
-                'test.csv fts-extracted.db -c film '
-                '-c actor_1:actors:name -c actor_2:actors:name '
-                '-f film -f actor_1 -f actor_2'
-            ).split()
+            cli.cli,
+            (
+                "test.csv fts-extracted.db -c film "
+                "-c actor_1:actors:name -c actor_2:actors:name "
+                "-f film -f actor_1 -f actor_2"
+            ).split(),
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('fts-extracted.db')
-        assert [
-            ('The Rock', 'Sean Connery', 'Nicolas Cage'),
-            ('National Treasure', 'Nicolas Cage', 'Diane Kruger'),
-            ('Troy', 'Diane Kruger', 'Orlando Bloom'),
-        ] == conn.execute('''
+        conn = sqlite3.connect("fts-extracted.db")
+        assert (
+            [
+                ("The Rock", "Sean Connery", "Nicolas Cage"),
+                ("National Treasure", "Nicolas Cage", "Diane Kruger"),
+                ("Troy", "Diane Kruger", "Orlando Bloom"),
+            ]
+            == conn.execute(
+                """
             select
                 film.value, a1.name, a2.name
             from test
                 join film on test.film = film.id
                 join actors a1 on test.actor_1 = a1.id
                 join actors a2 on test.actor_2 = a2.id
-        ''').fetchall()
-        assert [
-            ('National Treasure', 'Nicolas Cage', 'Diane Kruger'),
-            ('Troy', 'Diane Kruger', 'Orlando Bloom'),
-        ] == conn.execute('''
+        """
+            ).fetchall()
+        )
+        assert (
+            [
+                ("National Treasure", "Nicolas Cage", "Diane Kruger"),
+                ("Troy", "Diane Kruger", "Orlando Bloom"),
+            ]
+            == conn.execute(
+                """
             select
                 film.value, a1.name, a2.name
             from test
@@ -238,37 +267,39 @@ def test_fts_one_column_multiple_aliases():
             where test.rowid in (
                 select rowid from [test_fts] where [test_fts] match 'kruger'
             )
-        ''').fetchall()
+        """
+            ).fetchall()
+        )
 
 
 def test_shape():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
+        open("test.csv", "w").write(CSV)
         result = runner.invoke(
-            cli.cli, [
-                'test.csv', 'test-reshaped.db',
-                '--shape', 'county:Cty,votes:Vts(REAL)'
-            ]
+            cli.cli,
+            ["test.csv", "test-reshaped.db", "--shape", "county:Cty,votes:Vts(REAL)"],
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('test-reshaped.db')
+        conn = sqlite3.connect("test-reshaped.db")
         # Check we only have Cty and Vts columns:
         assert [
-            (0, 'Cty', 'TEXT', 0, None, 0),
-            (1, 'Vts', 'REAL', 0, None, 0),
-        ] == conn.execute('PRAGMA table_info(test);').fetchall()
+            (0, "Cty", "TEXT", 0, None, 0),
+            (1, "Vts", "REAL", 0, None, 0),
+        ] == conn.execute("PRAGMA table_info(test);").fetchall()
         # Now check that values are as expected:
-        results = conn.execute('''
+        results = conn.execute(
+            """
             select Cty, Vts from test
-        ''').fetchall()
+        """
+        ).fetchall()
         assert [
-            ('Yolo', 41.0),
-            ('Yolo', 8.0),
-            ('Yolo', 398.0),
-            ('Yolo', 460.0),
-            ('Yolo', 572.0),
-            ('Yolo', 291.0),
+            ("Yolo", 41.0),
+            ("Yolo", 8.0),
+            ("Yolo", 398.0),
+            ("Yolo", 460.0),
+            ("Yolo", 572.0),
+            ("Yolo", 291.0),
         ] == results
         for city, votes in results:
             assert isinstance(city, text_type)
@@ -278,72 +309,77 @@ def test_shape():
 def test_filename_column():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test1.csv', 'w').write(CSV)
-        open('test2.csv', 'w').write(CSV_MULTI)
+        open("test1.csv", "w").write(CSV)
+        open("test2.csv", "w").write(CSV_MULTI)
         result = runner.invoke(
-            cli.cli, [
-                '.', 'test-filename.db',
-                '--filename-column', 'source',
-            ]
+            cli.cli, [".", "test-filename.db", "--filename-column", "source"]
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('test-filename.db')
-        assert [
-            ('./test1',),
-            ('./test2',),
-        ] == conn.execute(
-            'select name from sqlite_master order by name'
+        conn = sqlite3.connect("test-filename.db")
+        assert [("./test1",), ("./test2",)] == conn.execute(
+            "select name from sqlite_master order by name"
         ).fetchall()
         # Check the source column has been added and populated
-        assert [
-            ('Yolo', 'Gary Johnson', 41, './test1'),
-        ] == conn.execute(
-            'select county, candidate, votes, source from [./test1] limit 1'
+        assert [("Yolo", "Gary Johnson", 41, "./test1")] == conn.execute(
+            "select county, candidate, votes, source from [./test1] limit 1"
         ).fetchall()
-        assert [
-            ('The Rock', 'Sean Connery', 'Nicolas Cage', './test2'),
-        ] == conn.execute(
-            'select film, actor_1, actor_2, source from [./test2] limit 1'
-        ).fetchall()
+        assert (
+            [("The Rock", "Sean Connery", "Nicolas Cage", "./test2")]
+            == conn.execute(
+                "select film, actor_1, actor_2, source from [./test2] limit 1"
+            ).fetchall()
+        )
 
 
 def test_filename_column_with_shape():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
+        open("test.csv", "w").write(CSV)
         result = runner.invoke(
-            cli.cli, [
-                'test.csv', 'test.db',
-                '--filename-column', 'source',
-                '--shape', 'county:Cty,votes:Vts'
-            ]
+            cli.cli,
+            [
+                "test.csv",
+                "test.db",
+                "--filename-column",
+                "source",
+                "--shape",
+                "county:Cty,votes:Vts",
+            ],
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('test.db')
-        assert [
-            ('Yolo', 41, 'test'),
-        ] == conn.execute(
-            'select Cty, Vts, source from test limit 1'
+        conn = sqlite3.connect("test.db")
+        assert [("Yolo", 41, "test")] == conn.execute(
+            "select Cty, Vts, source from test limit 1"
         ).fetchall()
 
 
 def test_shape_with_extract_columns():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
+        open("test.csv", "w").write(CSV)
         result = runner.invoke(
-            cli.cli, [
-                'test.csv', 'test.db',
-                '--filename-column', 'Source',
-                '--shape', 'county:Cty,votes:Vts',
-                '-c', 'Cty', '-c', 'Vts', '-c', 'Source'
-            ]
+            cli.cli,
+            [
+                "test.csv",
+                "test.db",
+                "--filename-column",
+                "Source",
+                "--shape",
+                "county:Cty,votes:Vts",
+                "-c",
+                "Cty",
+                "-c",
+                "Vts",
+                "-c",
+                "Source",
+            ],
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('test.db')
-        assert [
-            ('Yolo', '41', 'test'),
-        ] == conn.execute('''
+        conn = sqlite3.connect("test.db")
+        assert (
+            [("Yolo", "41", "test")]
+            == conn.execute(
+                """
             select
                 Cty.value, Vts.value, Source.value
             from test
@@ -351,105 +387,96 @@ def test_shape_with_extract_columns():
                 left join Vts on test.Vts = Vts.id
                 left join Source on test.Source = Source.id
             limit 1
-        ''').fetchall()
+        """
+            ).fetchall()
+        )
 
 
 def test_custom_indexes():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
+        open("test.csv", "w").write(CSV)
         result = runner.invoke(
-            cli.cli, [
-                'test.csv', 'test.db',
-                '--index', 'county', '-i', 'party,candidate'
-            ]
+            cli.cli,
+            ["test.csv", "test.db", "--index", "county", "-i", "party,candidate"],
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('test.db')
-        assert [
-            ('"test_county"', 'test'),
-            ('"test_party_candidate"', 'test'),
-        ] == conn.execute(
-            'select name, tbl_name from sqlite_master where type = "index" order by name'
-        ).fetchall()
+        conn = sqlite3.connect("test.db")
+        assert (
+            [('"test_county"', "test"), ('"test_party_candidate"', "test")]
+            == conn.execute(
+                'select name, tbl_name from sqlite_master where type = "index" order by name'
+            ).fetchall()
+        )
 
 
 def test_dates_and_datetimes():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV_DATES)
+        open("test.csv", "w").write(CSV_DATES)
         result = runner.invoke(
-            cli.cli, [
-                'test.csv', 'test.db', '-d', 'date', '-dt', 'datetime'
-            ]
+            cli.cli, ["test.csv", "test.db", "-d", "date", "-dt", "datetime"]
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('test.db')
+        conn = sqlite3.connect("test.db")
         expected = [
-            ('First headline', '2017-05-03', '1938-04-04T22:00:00'),
-            ('Second headline', '2005-04-30', '2009-12-10T05:45:00'),
+            ("First headline", "2017-05-03", "1938-04-04T22:00:00"),
+            ("Second headline", "2005-04-30", "2009-12-10T05:45:00"),
         ]
-        actual = conn.execute(
-            'select * from test'
-        ).fetchall()
+        actual = conn.execute("select * from test").fetchall()
         assert expected == actual
 
 
 def test_dates_custom_formats():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV_DATES_CUSTOM_FORMAT)
+        open("test.csv", "w").write(CSV_DATES_CUSTOM_FORMAT)
         result = runner.invoke(
-            cli.cli, [
-                'test.csv', 'test.db', '-d', 'date',
-                '-df', '%y/%d/%m'
-            ]
+            cli.cli, ["test.csv", "test.db", "-d", "date", "-df", "%y/%d/%m"]
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('test.db')
+        conn = sqlite3.connect("test.db")
         # Input was 03/02/01
-        expected = [
-            ('Custom format', '2003-01-02'),
-        ]
-        actual = conn.execute(
-            'select * from test'
-        ).fetchall()
+        expected = [("Custom format", "2003-01-02")]
+        actual = conn.execute("select * from test").fetchall()
         assert expected == actual
 
 
 def test_extract_cols_no_fts():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('test.csv', 'w').write(CSV)
+        open("test.csv", "w").write(CSV)
         result = runner.invoke(
-            cli.cli, (
-                'test.csv fts-extracted.db -c office -c party -c candidate '
-                '-f party -f candidate --no-fulltext-fks'
-            ).split()
+            cli.cli,
+            (
+                "test.csv fts-extracted.db -c office -c party -c candidate "
+                "-f party -f candidate --no-fulltext-fks"
+            ).split(),
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('fts-extracted.db')
-        assert [('test_fts',)] == conn.execute('''
+        conn = sqlite3.connect("fts-extracted.db")
+        assert (
+            [("test_fts",)]
+            == conn.execute(
+                """
             select name from sqlite_master
             where type='table' and name like '%_fts'
             and sql like '%USING FTS%'
-        ''').fetchall()
+        """
+            ).fetchall()
+        )
 
 
 def test_custom_primary_keys():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        open('pks.csv', 'w').write(CSV_CUSTOM_PRIMARY_KEYS)
+        open("pks.csv", "w").write(CSV_CUSTOM_PRIMARY_KEYS)
         result = runner.invoke(
-            cli.cli, (
-                'pks.csv pks.db -pk pk1 --primary-key pk2'
-            ).split()
+            cli.cli, ("pks.csv pks.db -pk pk1 --primary-key pk2").split()
         )
         assert result.exit_code == 0
-        conn = sqlite3.connect('pks.db')
+        conn = sqlite3.connect("pks.db")
         pks = [
-            r[1]
-            for r in conn.execute('PRAGMA table_info("pks")').fetchall()
-            if r[-1]
+            r[1] for r in conn.execute('PRAGMA table_info("pks")').fetchall() if r[-1]
         ]
-        assert ['pk1', 'pk2'] == pks
+        assert ["pk1", "pk2"] == pks
