@@ -117,11 +117,10 @@ import sqlite3
     help="Skip adding full-text index on values extracted using --extract-column (default is to add them)",
 )
 @click.option(
-    "--na-filter",
-    "na_filter",
+    "--no-na-filter",
+    "no_na_filter",
     is_flag=True,
-    default=True,
-    help="Detect missing value markers (empty strings and the value of na_values). See pandas.read_csv() documentation",
+    help="Skip detection of missing value markers (empty strings and the value of na_values). See pandas.read_csv() documentation",
 )
 @click.version_option()
 def cli(
@@ -143,7 +142,7 @@ def cli(
     filename_column,
     no_index_fks,
     no_fulltext_fks,
-    na_filter
+    no_na_filter
 ):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
@@ -170,7 +169,7 @@ def cli(
     sql_type_overrides = None
     for name, path in csvs.items():
         try:
-            df = load_csv(path, separator, skip_errors, quoting, shape, na_filter)
+            df = load_csv(path, separator, skip_errors, quoting, shape, no_na_filter)
             df.table_name = table or name
             if filename_column:
                 df[filename_column] = name

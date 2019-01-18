@@ -25,7 +25,7 @@ def load_csv(
     skip_errors,
     quoting,
     shape,
-    na_filter,
+    no_na_filter,
     encodings_to_try=("utf8", "latin-1"),
 ):
     usecols = None
@@ -42,7 +42,7 @@ def load_csv(
                     low_memory=True,
                     encoding=encoding,
                     usecols=usecols,
-                    na_filter=na_filter
+                    na_filter=not no_na_filter
                 )
             except UnicodeDecodeError:
                 continue
