@@ -116,6 +116,11 @@ import sqlite3
     is_flag=True,
     help="Skip adding full-text index on values extracted using --extract-column (default is to add them)",
 )
+@click.option(
+    "--skip-existing-tables",
+    help="Skip creation of this table if the database contains a table with the same name.",
+    is_flag=True
+)
 @click.version_option()
 def cli(
     paths,
@@ -136,6 +141,7 @@ def cli(
     filename_column,
     no_index_fks,
     no_fulltext_fks,
+    skip_existing_tables,
 ):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
@@ -198,7 +204,12 @@ def cli(
         if replace_tables and table_exists(conn, df.table_name):
             drop_table(conn, df.table_name)
         if table_exists(conn, df.table_name):
-            df.to_sql(df.table_name, conn, if_exists="append", index=False)
+            if skip_existing_tables:
+                raise click.ClickException(
+                    "Table " + str(df.table_name) + " exists."
+                )
+            else:
+                df.to_sql(df.table_name, conn, if_exists="append", index=False)
         else:
             to_sql_with_foreign_keys(
                 conn,
