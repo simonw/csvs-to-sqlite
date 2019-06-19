@@ -233,21 +233,22 @@ def cli(
 				add_index(conn, df.table_name, index_defn)
 
 	# Create FTS tables
-	fts_version = best_fts_version()
-	if not fts_version:
-		conn.close()
-		raise click.BadParameter(
-			"Your SQLite version does not support any variant of FTS"
-		)
-	# Check that columns make sense
-	for table, df in created_tables.items():
-		for fts_column in fts:
-			if fts_column not in df.columns:
-				raise click.BadParameter(
-					'FTS column "{}" does not exist'.format(fts_column)
-				)
+	if fts or fts_all:
+		fts_version = best_fts_version()
+		if not fts_version:
+			conn.close()
+			raise click.BadParameter(
+				"Your SQLite version does not support any variant of FTS"
+			)
+		# Check that columns make sense
+		for table, df in created_tables.items():
+			for fts_column in fts:
+				if fts_column not in df.columns:
+					raise click.BadParameter(
+						'FTS column "{}" does not exist'.format(fts_column)
+					)
 
-		generate_and_populate_fts(conn, created_tables.keys(), fts, foreign_keys, fts_all)
+			generate_and_populate_fts(conn, created_tables.keys(), fts, foreign_keys, fts_all)
 
 	conn.close()
 
