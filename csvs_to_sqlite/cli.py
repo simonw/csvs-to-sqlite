@@ -142,6 +142,7 @@ def cli(
     no_index_fks,
     no_fulltext_fks,
     skip_existing_tables,
+    fts_all,
 ):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
@@ -205,8 +206,8 @@ def cli(
             drop_table(conn, df.table_name)
         if table_exists(conn, df.table_name):
             if skip_existing_tables:
-                raise click.ClickException(
-                    "Table " + str(df.table_name) + " exists."
+                raise click.echo(
+                    "Table " + str(df.table_name) + " exists. Skipping because command line flag '--skip_existing_tables' is active"
                 )
             else:
                 df.to_sql(df.table_name, conn, if_exists="append", index=False)
