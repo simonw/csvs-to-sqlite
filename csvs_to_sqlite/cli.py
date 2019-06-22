@@ -209,9 +209,10 @@ def cli(
 		# create the table with extra SQL for foreign keys
 		if table_exists(conn, df.table_name):
 			if skip_existing_tables:
-				raise click.echo(
+				click.echo(
 					"Table '{}' exists. Skipping because command line flag '--skip-existing-tables' is active".format(str(df.table_name))
 				)
+				break
 			if replace_tables and not skip_existing_tables:
 				click.echo("Dropping table {}.".format(df.table_name))
 				drop_table(conn, df.table_name)
@@ -252,15 +253,16 @@ def cli(
 
 	conn.close()
 
-	if db_existed:
-		click.echo(
-			"Added {} CSV file{} to {}".format(
-				len(csvs), "" if len(csvs) == 1 else "s", dbname
+	if not skip_existing_tables:
+		if db_existed:
+			click.echo(
+				"Added {} CSV file{} to {}".format(
+					len(csvs), "" if len(csvs) == 1 else "s", dbname
+				)
 			)
-		)
-	else:
-		click.echo(
-			"Created {} from {} CSV file{}".format(
-				dbname, len(csvs), "" if len(csvs) == 1 else "s"
+		else:
+			click.echo(
+				"Created {} from {} CSV file{}".format(
+					dbname, len(csvs), "" if len(csvs) == 1 else "s"
+				)
 			)
-		)
