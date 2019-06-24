@@ -2,6 +2,8 @@ from setuptools import setup, find_packages
 import io
 import os
 
+VERSION = "0.9.1"
+
 
 def get_long_description():
     with io.open(
@@ -17,7 +19,7 @@ setup(
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="Simon Willison",
-    version="0.9",
+    version=VERSION,
     license="Apache License, Version 2.0",
     packages=find_packages(),
     install_requires=[
@@ -35,7 +37,6 @@ setup(
     """,
     url="https://github.com/simonw/csvs-to-sqlite",
     classifiers=[
-        "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Intended Audience :: End Users/Desktop",
