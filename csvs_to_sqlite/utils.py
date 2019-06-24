@@ -361,7 +361,7 @@ def best_fts_version():
     conn = sqlite3.connect(":memory:")
     for fts in ("FTS5", "FTS4", "FTS3"):
         try:
-            conn.execute("CREATE VIRTUAL TABLE v USING {} (t TEXT);".format(fts))
+            conn.execute("CREATE VIRTUAL TABLE v USING {} (t);".format(fts))
             return fts
         except sqlite3.OperationalError:
             continue
