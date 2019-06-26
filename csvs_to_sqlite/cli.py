@@ -209,7 +209,7 @@ def cli(
 		# create the table with extra SQL for foreign keys
 		if table_exists(conn, df.table_name):
 			if skip_existing_tables:
-				click.echo(
+				raise click.UsageError(
 					"Table '{}' exists. Skipping because command line flag '--skip-existing-tables' is active".format(str(df.table_name))
 				)
 				break
