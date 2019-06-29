@@ -368,11 +368,16 @@ def best_fts_version():
     return None
 
 
-def generate_and_populate_fts(conn, created_tables, cols, foreign_keys):
+def generate_and_populate_fts(conn, created_tables, cols, foreign_keys, fts_all):
     fts_version = best_fts_version()
     sql = []
-    fts_cols = ", ".join('"{}"'.format(c) for c in cols)
     for table in created_tables:
+        if fts_all:
+            pragma = conn.cursor().execute('PRAGMA TABLE_INFO(\'{}\')'.format(table)).fetchall()
+            cols = [ tup[1] for tup in pragma ]
+
+        fts_cols = ", ".join('"{}"'.format(c) for c in cols)
+        
         sql.append(
             'CREATE VIRTUAL TABLE "{content_table}_fts" USING {fts_version} ({cols}, content="{content_table}")'.format(
                 cols=fts_cols, content_table=table, fts_version=fts_version
