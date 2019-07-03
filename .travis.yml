@@ -5,7 +5,8 @@ python:
 - 2.7
 
 script:
-- python setup.py test
+- pip install .[test]
+- pytest
 
 jobs:
   include:
