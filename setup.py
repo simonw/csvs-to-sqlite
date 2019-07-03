@@ -23,14 +23,14 @@ setup(
     license="Apache License, Version 2.0",
     packages=find_packages(),
     install_requires=[
-        "click>=6.0.0",
-        "dateparser>=0.7.0",
-        "pandas>=0.23.4",
-        "py-lru-cache==0.1.4",
+        "click~=6.0.0",
+        "dateparser~=0.7.0",
+        "pandas~=0.23.4",
+        "py-lru-cache~=0.1.4",
         "six",
     ],
     setup_requires=["pytest-runner"],
-    tests_require=["pytest>=4.1.1"],
+    tests_require=["pytest~=4.1.1"],
     entry_points="""
         [console_scripts]
         csvs-to-sqlite=csvs_to_sqlite.cli:cli
