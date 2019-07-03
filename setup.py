@@ -29,7 +29,6 @@ setup(
         "py-lru-cache~=0.1.4",
         "six",
     ],
-    setup_requires=["pytest-runner"],
     tests_require=["pytest~=4.1.1"],
     entry_points="""
         [console_scripts]
