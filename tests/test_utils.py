@@ -24,11 +24,11 @@ def test_get_create_table_sql():
     assert (
         'CREATE TABLE "hello" (\n'
         '"index" INTEGER,\n'
-        '  "letter" TEXT,\n'
-        '  "number" INTEGER\n'
+        '  "number" INTEGER,\n'
+        '  "letter" TEXT\n'
         ")"
     ) == sql
-    assert ["index", "letter", "number"] == columns
+    assert {"index", "letter", "number"} == set(columns)
 
 
 def test_refactor_dataframes():
