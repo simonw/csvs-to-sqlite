@@ -23,13 +23,13 @@ setup(
     license="Apache License, Version 2.0",
     packages=find_packages(),
     install_requires=[
-        "click~=6.0.0",
-        "dateparser~=0.7.0",
-        "pandas~=0.23.4",
+        "click~=7.0",
+        "dateparser~=0.7.1",
+        "pandas~=0.25.0",
         "py-lru-cache~=0.1.4",
         "six",
     ],
-    tests_require=["pytest~=4.1.1"],
+    tests_require=["pytest~=5.0.0"],
     entry_points="""
         [console_scripts]
         csvs-to-sqlite=csvs_to_sqlite.cli:cli
@@ -41,7 +41,6 @@ setup(
         "Intended Audience :: End Users/Desktop",
         "Topic :: Database",
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",
     ],
 )

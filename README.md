@@ -96,7 +96,11 @@ They will be populated with IDs that reference the new derived tables.
 
 ## Installation
 
-    pip install csvs-to-sqlite
+    $ pip install csvs-to-sqlite
+
+`csvs-to-sqlite` now requires Python 3. If you are running Python 2 you can install the last version to support Python 2:
+
+    $ pip install csvs-to-sqlite==0.9.2
 
 ## csvs-to-sqlite --help
 

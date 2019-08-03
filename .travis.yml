@@ -2,7 +2,7 @@ language: python
 
 python:
 - 3.6
-- 2.7
+- 3.7
 
 script:
 - pip install .[test]
@@ -11,7 +11,7 @@ script:
 jobs:
   include:
     - stage: pypi release
-      python: 3.6
+      python: 3.7
       script: echo "Deploying to PyPI..."
       deploy:
         - provider: pypi
