@@ -152,5 +152,9 @@ They will be populated with IDs that reference the new derived tables.
                                    add them)
       --no-fulltext-fks            Skip adding full-text index on values extracted
                                    using --extract-column (default is to add them)
+      --just-strings               Import all columns as text strings by default
+                                   (and, if specified, still obey --shape,
+                                   --date/datetime, and --datetime-format)
+
       --version                    Show the version and exit.
       --help                       Show this message and exit.

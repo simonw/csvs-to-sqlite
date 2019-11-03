@@ -116,6 +116,11 @@ import sqlite3
     is_flag=True,
     help="Skip adding full-text index on values extracted using --extract-column (default is to add them)",
 )
+@click.option(
+    "--just-strings",
+    is_flag=True,
+    help="Import all columns as text strings by default (and, if specified, still obey --shape, --date/datetime, and --datetime-format)",
+)
 @click.version_option()
 def cli(
     paths,
@@ -136,6 +141,7 @@ def cli(
     filename_column,
     no_index_fks,
     no_fulltext_fks,
+    just_strings,
 ):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
@@ -162,7 +168,7 @@ def cli(
     sql_type_overrides = None
     for name, path in csvs.items():
         try:
-            df = load_csv(path, separator, skip_errors, quoting, shape)
+            df = load_csv(path, separator, skip_errors, quoting, shape, just_strings=just_strings)
             df.table_name = table or name
             if filename_column:
                 df[filename_column] = name
