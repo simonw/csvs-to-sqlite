@@ -25,7 +25,7 @@ setup(
     install_requires=[
         "click~=7.0",
         "dateparser~=0.7.1",
-        "pandas~=0.25.0",
+        "pandas>=0.25.0,<2",
         "py-lru-cache~=0.1.4",
         "six",
     ],
