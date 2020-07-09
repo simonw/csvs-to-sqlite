@@ -26,7 +26,9 @@ def load_csv(
     quoting,
     shape,
     encodings_to_try=("utf8", "latin-1"),
+    just_strings=False,
 ):
+    dtype = str if just_strings is True else None
     usecols = None
     if shape:
         usecols = [defn["csv_name"] for defn in parse_shape(shape)]
@@ -41,6 +43,7 @@ def load_csv(
                     low_memory=True,
                     encoding=encoding,
                     usecols=usecols,
+                    dtype=dtype,
                 )
             except UnicodeDecodeError:
                 continue

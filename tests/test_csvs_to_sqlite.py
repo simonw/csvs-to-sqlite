@@ -28,6 +28,12 @@ one,one,11
 one,two,12
 two,one,21"""
 
+CSV_STRINGS_AND_DATES = """name,gross,release_date
+Adaptation,22.5,6 of December in the year 2002
+Face/Off,245.7,19 of June in the year 1997
+The Rock,134.1,9 of June in the year 1996"""
+
+
 
 def test_flat():
     runner = CliRunner()
@@ -480,3 +486,107 @@ def test_custom_primary_keys():
             r[1] for r in conn.execute('PRAGMA table_info("pks")').fetchall() if r[-1]
         ]
         assert ["pk1", "pk2"] == pks
+
+
+def test_just_strings_default():
+    """
+    Just like test_flat(), except all columns are strings
+    """
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("test.csv", "w").write(CSV)
+        result = runner.invoke(
+            cli.cli,
+            "test.csv just-strings.db --just-strings".split(),
+        )
+        assert result.exit_code == 0
+
+
+        conn = sqlite3.connect("just-strings.db")
+        assert [
+            (0, "county", "TEXT", 0, None, 0),
+            (1, "precinct", "TEXT", 0, None, 0),
+            (2, "office", "TEXT", 0, None, 0),
+            (3, "district", "TEXT", 0, None, 0),
+            (4, "party", "TEXT", 0, None, 0),
+            (5, "candidate", "TEXT", 0, None, 0),
+            (6, "votes", "TEXT", 0, None, 0),
+        ] == list(conn.execute("PRAGMA table_info(test)"))
+        rows = conn.execute("select * from test").fetchall()
+        assert [
+            ("Yolo", "100001", "President", None, "LIB", "Gary Johnson", "41"),
+            ("Yolo", "100001", "President", None, "PAF", "Gloria Estela La Riva", "8"),
+            ("Yolo", "100001", "Proposition 51", None, None, "No", "398"),
+            ("Yolo", "100001", "Proposition 51", None, None, "Yes", "460"),
+            ("Yolo", "100001", "State Assembly", "7", "DEM", "Kevin McCarty", "572"),
+            ("Yolo", "100001", "State Assembly", "7", "REP", "Ryan K. Brown", "291"),
+        ] == rows
+        last_row = rows[-1]
+        for i, t in enumerate(
+            (string_types, string_types, string_types, string_types, string_types, string_types, string_types)
+        ):
+            assert isinstance(last_row[i], t)
+
+
+def test_just_strings_with_shape():
+    """
+    Make sure shape and just_strings play well together
+    """
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("test.csv", "w").write(CSV)
+        result = runner.invoke(
+            cli.cli,
+            ["test.csv", "test-reshaped-strings.db", "--just-strings",
+             "--shape", "county:Cty,district:district,votes:Vts(REAL)"],
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect("test-reshaped-strings.db")
+        # Check that Cty, Vts exist as defined, and so does votetxt:
+        assert [
+            (0, "Cty", "TEXT", 0, None, 0),
+            (1, "district", "TEXT", 0, None, 0),
+            (2, "Vts", "REAL", 0, None, 0),
+        ] == conn.execute("PRAGMA table_info(test);").fetchall()
+        # Now check that values are as expected:
+        results = conn.execute(
+            """
+            select Cty, Vts, district from test
+        """
+        ).fetchall()
+        assert [
+            ("Yolo", 41.0, None),
+            ("Yolo", 8.0, None),
+            ("Yolo", 398.0, None),
+            ("Yolo", 460.0, None),
+            ("Yolo", 572.0, "7"),
+            ("Yolo", 291.0, "7"),
+        ] == results
+        for city, votes, district in results:
+            assert isinstance(city, text_type)
+            assert isinstance(votes, float)
+            assert isinstance(district, text_type) or district is None
+
+
+def test_just_strings_with_date_specified():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("nic_cages_greatest.csv", "w").write(CSV_STRINGS_AND_DATES)
+        result = runner.invoke(
+            cli.cli, ["nic_cages_greatest.csv", "movies.db",
+                      "--date", "release_date",
+                      "--datetime-format", "%d of %B in the year %Y",
+                      "--just-strings"]
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect("movies.db")
+        expected = [
+            ("Adaptation", "22.5", "2002-12-06"),
+            ("Face/Off", "245.7", "1997-06-19"),
+            ("The Rock", "134.1", "1996-06-09"),
+        ]
+        actual = conn.execute("select * from nic_cages_greatest").fetchall()
+        assert expected == actual
+
+        for name, gross, dt in actual:
+            assert isinstance(gross, text_type)
