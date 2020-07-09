@@ -47,7 +47,7 @@ Let's say you have a CSV file that looks like this:
 ([Real example taken from the Open Elections project](https://github.com/openelections/openelections-data-sd/blob/master/2016/20160607__sd__primary__clark__precinct.csv))
 
 You can now convert selected columns into separate lookup tables using the new
-`--extract-`column option (shortname: `-c`) - for example:
+`--extract-column` option (shortname: `-c`) - for example:
 
     csvs-to-sqlite openelections-data-*/*.csv \
         -c county:County:name \
