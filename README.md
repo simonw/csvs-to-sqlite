@@ -1,6 +1,7 @@
 # csvs-to-sqlite
 
 [![PyPI](https://img.shields.io/pypi/v/csvs-to-sqlite.svg)](https://pypi.python.org/pypi/csvs-to-sqlite)
+[![Changelog](https://img.shields.io/github/v/release/simonw/csvs-to-sqlite?include_prereleases&label=changelog)](https://github.com/simonw/csvs-to-sqlite/releases)
 [![Travis CI](https://travis-ci.org/simonw/csvs-to-sqlite.svg?branch=master)](https://travis-ci.org/simonw/csvs-to-sqlite)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/csvs-to-sqlite/blob/master/LICENSE)
 
