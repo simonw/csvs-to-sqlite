@@ -77,6 +77,12 @@ import sqlite3
     help=("One or more custom date format strings to try when parsing dates/datetimes"),
 )
 @click.option(
+    "--date-julian",
+    "-dj",
+    multiple=True,
+    help=("One or more columns to store as Julian Dates (reals)"),
+)
+@click.option(
     "--primary-key",
     "-pk",
     multiple=True,
@@ -134,6 +140,7 @@ def cli(
     date,
     datetime,
     datetime_format,
+    date_julian,
     primary_key,
     fts,
     index,
@@ -174,7 +181,11 @@ def cli(
                 df[filename_column] = name
                 if shape:
                     shape += ",{}".format(filename_column)
-            sql_type_overrides = apply_shape(df, shape)
+            if shape:
+                sql_type_overrides = apply_shape(df, shape)
+            elif date_julian:
+                julian_cols = ",".join(["%s(REAL)" % s for s in date_julian])
+                sql_type_overrides = apply_shape(df, julian_cols, True)
             apply_dates_and_datetimes(df, date, datetime, datetime_format)
             dataframes.append(df)
         except LoadCsvError as e:

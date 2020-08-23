@@ -466,17 +466,18 @@ def parse_shape(shape):
     return defns
 
 
-def apply_shape(df, shape):
+def apply_shape(df, shape, modify=False):
     # Shape is format 'county:Cty,votes:Vts(REAL)'
     # Applies changes in place, returns dtype= arg for to_sql
     if not shape:
         return None
     defns = parse_shape(shape)
-    # Drop any columns we don't want
-    cols_to_keep = [d["csv_name"] for d in defns]
-    cols_to_drop = [c for c in df.columns if c not in cols_to_keep]
-    if cols_to_drop:
-        df.drop(cols_to_drop, axis=1, inplace=True)
+    # If we are not modifying, drop any columns we don't want
+    if not modify:
+        cols_to_keep = [d["csv_name"] for d in defns]
+        cols_to_drop = [c for c in df.columns if c not in cols_to_keep]
+        if cols_to_drop:
+            df.drop(cols_to_drop, axis=1, inplace=True)
     # Apply column renames
     renames = {
         d["csv_name"]: d["db_name"] for d in defns if d["csv_name"] != d["db_name"]
