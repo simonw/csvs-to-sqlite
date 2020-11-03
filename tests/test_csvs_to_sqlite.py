@@ -34,7 +34,6 @@ Face/Off,245.7,19 of June in the year 1997
 The Rock,134.1,9 of June in the year 1996"""
 
 
-
 def test_flat():
     runner = CliRunner()
     with runner.isolated_filesystem():
@@ -329,12 +328,11 @@ def test_filename_column():
         assert [("Yolo", "Gary Johnson", 41, "./test1")] == conn.execute(
             "select county, candidate, votes, source from [./test1] limit 1"
         ).fetchall()
-        assert (
-            [("The Rock", "Sean Connery", "Nicolas Cage", "./test2")]
-            == conn.execute(
-                "select film, actor_1, actor_2, source from [./test2] limit 1"
-            ).fetchall()
-        )
+        assert [
+            ("The Rock", "Sean Connery", "Nicolas Cage", "./test2")
+        ] == conn.execute(
+            "select film, actor_1, actor_2, source from [./test2] limit 1"
+        ).fetchall()
 
 
 def test_filename_column_with_shape():
@@ -408,12 +406,12 @@ def test_custom_indexes():
         )
         assert result.exit_code == 0
         conn = sqlite3.connect("test.db")
-        assert (
-            [('"test_county"', "test"), ('"test_party_candidate"', "test")]
-            == conn.execute(
-                'select name, tbl_name from sqlite_master where type = "index" order by name'
-            ).fetchall()
-        )
+        assert [
+            ('"test_county"', "test"),
+            ('"test_party_candidate"', "test"),
+        ] == conn.execute(
+            'select name, tbl_name from sqlite_master where type = "index" order by name'
+        ).fetchall()
 
 
 def test_dates_and_datetimes():
@@ -501,7 +499,6 @@ def test_just_strings_default():
         )
         assert result.exit_code == 0
 
-
         conn = sqlite3.connect("just-strings.db")
         assert [
             (0, "county", "TEXT", 0, None, 0),
@@ -523,7 +520,15 @@ def test_just_strings_default():
         ] == rows
         last_row = rows[-1]
         for i, t in enumerate(
-            (string_types, string_types, string_types, string_types, string_types, string_types, string_types)
+            (
+                string_types,
+                string_types,
+                string_types,
+                string_types,
+                string_types,
+                string_types,
+                string_types,
+            )
         ):
             assert isinstance(last_row[i], t)
 
@@ -537,8 +542,13 @@ def test_just_strings_with_shape():
         open("test.csv", "w").write(CSV)
         result = runner.invoke(
             cli.cli,
-            ["test.csv", "test-reshaped-strings.db", "--just-strings",
-             "--shape", "county:Cty,district:district,votes:Vts(REAL)"],
+            [
+                "test.csv",
+                "test-reshaped-strings.db",
+                "--just-strings",
+                "--shape",
+                "county:Cty,district:district,votes:Vts(REAL)",
+            ],
         )
         assert result.exit_code == 0
         conn = sqlite3.connect("test-reshaped-strings.db")
@@ -573,10 +583,16 @@ def test_just_strings_with_date_specified():
     with runner.isolated_filesystem():
         open("nic_cages_greatest.csv", "w").write(CSV_STRINGS_AND_DATES)
         result = runner.invoke(
-            cli.cli, ["nic_cages_greatest.csv", "movies.db",
-                      "--date", "release_date",
-                      "--datetime-format", "%d of %B in the year %Y",
-                      "--just-strings"]
+            cli.cli,
+            [
+                "nic_cages_greatest.csv",
+                "movies.db",
+                "--date",
+                "release_date",
+                "--datetime-format",
+                "%d of %B in the year %Y",
+                "--just-strings",
+            ],
         )
         assert result.exit_code == 0
         conn = sqlite3.connect("movies.db")

@@ -168,7 +168,9 @@ def cli(
     sql_type_overrides = None
     for name, path in csvs.items():
         try:
-            df = load_csv(path, separator, skip_errors, quoting, shape, just_strings=just_strings)
+            df = load_csv(
+                path, separator, skip_errors, quoting, shape, just_strings=just_strings
+            )
             df.table_name = table or name
             if filename_column:
                 df[filename_column] = name
