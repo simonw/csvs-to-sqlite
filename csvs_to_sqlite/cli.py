@@ -121,6 +121,11 @@ import sqlite3
     is_flag=True,
     help="Import all columns as text strings by default (and, if specified, still obey --shape, --date/datetime, and --datetime-format)",
 )
+@click.option(
+    "--skip-existing-tables",
+    help="Skip creation of this table if the database contains a table with the same name.",
+    is_flag=True
+)
 @click.version_option()
 def cli(
     paths,
@@ -142,6 +147,7 @@ def cli(
     no_index_fks,
     no_fulltext_fks,
     just_strings,
+    skip_existing_tables,
 ):
     """
     PATHS: paths to individual .csv files or to directories containing .csvs
@@ -162,6 +168,16 @@ def cli(
     db_existed = os.path.exists(dbname)
 
     conn = sqlite3.connect(dbname)
+
+    """
+    Skip entire operation if --skip-existing-tables flag is set 
+    and if table of same name exists in database
+    """
+    if table_exists(conn,table) and skip_existing_tables:
+        click.echo(
+            "Table '{}' already exists.".format(table)
+        )
+        return
 
     dataframes = []
     csvs = csvs_from_paths(paths)
@@ -206,7 +222,16 @@ def cli(
         if replace_tables and table_exists(conn, df.table_name):
             drop_table(conn, df.table_name)
         if table_exists(conn, df.table_name):
-            df.to_sql(df.table_name, conn, if_exists="append", index=False)
+            if skip_existing_tables:
+                raise click.UsageError(
+                    "Table '{}' already exists.".format(str(df.table_name))
+                )
+                break     
+            if replace_tables and not skip_existing_tables:
+                click.echo("Dropping table {}.".format(df.table_name))
+                drop_table(conn, df.table_name)
+            else:
+                df.to_sql(df.table_name, conn, if_exists="append", index=False)
         else:
             to_sql_with_foreign_keys(
                 conn,
@@ -242,15 +267,16 @@ def cli(
 
     conn.close()
 
-    if db_existed:
-        click.echo(
-            "Added {} CSV file{} to {}".format(
-                len(csvs), "" if len(csvs) == 1 else "s", dbname
+    if not skip_existing_tables:
+        if db_existed:
+            click.echo(
+                "Added {} CSV file{} to {}".format(
+                    len(csvs), "" if len(csvs) == 1 else "s", dbname
+                )
             )
-        )
-    else:
-        click.echo(
-            "Created {} from {} CSV file{}".format(
-                dbname, len(csvs), "" if len(csvs) == 1 else "s"
+        else:
+            click.echo(
+                "Created {} from {} CSV file{}".format(
+                    dbname, len(csvs), "" if len(csvs) == 1 else "s"
+                )
             )
-        )
