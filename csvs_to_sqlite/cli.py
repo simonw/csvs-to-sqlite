@@ -105,6 +105,12 @@ import sqlite3
     default=None,
 )
 @click.option(
+    "--fixed-column",
+    multiple=True,
+    help="For colname:value, add a column colname and populate with value",
+    default=None,
+)
+@click.option(
     "--no-index-fks",
     "no_index_fks",
     is_flag=True,
@@ -139,6 +145,7 @@ def cli(
     index,
     shape,
     filename_column,
+    fixed_column,
     no_index_fks,
     no_fulltext_fks,
     just_strings,
@@ -151,6 +158,8 @@ def cli(
     # make plural for more readable code:
     extract_columns = extract_column
     del extract_column
+    fixed_columns = fixed_column
+    del fixed_column
 
     if extract_columns:
         click.echo("extract_columns={}".format(extract_columns))
@@ -176,6 +185,11 @@ def cli(
                 df[filename_column] = name
                 if shape:
                     shape += ",{}".format(filename_column)
+            if fixed_columns:
+                for colname, value in fixed_columns:
+                    df[colname] = value
+                    if shape:
+                        shape += ",{}".format(colname)
             sql_type_overrides = apply_shape(df, shape)
             apply_dates_and_datetimes(df, date, datetime, datetime_format)
             dataframes.append(df)
