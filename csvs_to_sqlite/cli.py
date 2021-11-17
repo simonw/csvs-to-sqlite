@@ -188,8 +188,6 @@ def cli(
                 if shape:
                     shape += ",{}".format(filename_column)
             if fixed_columns:
-                print(fixed_columns)
-                print(len(fixed_columns))
                 for colname, value in fixed_columns:
                     df[colname] = value
                     if shape:
