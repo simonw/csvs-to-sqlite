@@ -210,12 +210,12 @@ def cli(
                         shape += ",{}".format(colname)
             if fixed_columns_int:
                 for colname, value in fixed_columns_int:
-                    df[colname] = int(value)
+                    df[colname] = value
                     if shape:
                         shape += ",{}".format(colname)
             if fixed_columns_float:
                 for colname, value in fixed_columns_float:
-                    df[colname] = float(value)
+                    df[colname] = value
                     if shape:
                         shape += ",{}".format(colname)
             sql_type_overrides = apply_shape(df, shape)
