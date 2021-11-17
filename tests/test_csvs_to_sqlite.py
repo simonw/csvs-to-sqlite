@@ -367,9 +367,9 @@ def test_fixed_column():
                 "test.csv",
                 "test.db",
                 "--fixed-column",
-                "test1:hello",
+                "col1:foo",
                 "--fixed-column",
-                "test2:world"
+                "col2:bar"
             ]
         )
         assert result.exit_code == 0
@@ -383,17 +383,17 @@ def test_fixed_column():
             (4, "party", "TEXT", 0, None, 0),
             (5, "candidate", "TEXT", 0, None, 0),
             (6, "votes", "INTEGER", 0, None, 0),
-            (7, "test1", "TEXT", 0, None, 0),
-            (8, "test2", "TEXT", 0, None, 0),
+            (7, "col1", "TEXT", 0, None, 0),
+            (8, "col2", "TEXT", 0, None, 0),
         ] == list(conn.execute("PRAGMA table_info(test)"))
         rows = conn.execute("select * from test").fetchall()
         assert [
-            ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41, "hello", "world"),
-            ("Yolo", 100001, "President", None, "PAF", "Gloria Estela La Riva", 8, "hello", "world"),
-            ("Yolo", 100001, "Proposition 51", None, None, "No", 398, "hello", "world"),
-            ("Yolo", 100001, "Proposition 51", None, None, "Yes", 460, "hello", "world"),
-            ("Yolo", 100001, "State Assembly", 7, "DEM", "Kevin McCarty", 572, "hello", "world"),
-            ("Yolo", 100001, "State Assembly", 7, "REP", "Ryan K. Brown", 291, "hello", "world"),
+            ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41, "foo", "bar"),
+            ("Yolo", 100001, "President", None, "PAF", "Gloria Estela La Riva", 8, "foo", "bar"),
+            ("Yolo", 100001, "Proposition 51", None, None, "No", 398, "foo", "bar"),
+            ("Yolo", 100001, "Proposition 51", None, None, "Yes", 460, "foo", "bar"),
+            ("Yolo", 100001, "State Assembly", 7, "DEM", "Kevin McCarty", 572, "foo", "bar"),
+            ("Yolo", 100001, "State Assembly", 7, "REP", "Ryan K. Brown", 291, "foo", "bar"),
         ] == rows
 
 
@@ -407,17 +407,17 @@ def test_fixed_column_with_shape():
                 "test.csv",
                 "test.db",
                 "--fixed-column",
-                "test1:hello",
+                "col1:foo",
                 "--fixed-column",
-                "test2:world",
+                "col2:bar",
                 "--shape",
                 "county:Cty,votes:Vts",
             ],
         )
         assert result.exit_code == 0
         conn = sqlite3.connect("test.db")
-        assert [("Yolo", 41, "test", "hello", "world")] == conn.execute(
-            "select Cty, Vts, source from test limit 1"
+        assert [("Yolo", 41, "foo", "bar")] == conn.execute(
+            "select Cty, Vts, col1, col2 from test limit 1"
         ).fetchall()
 
 
