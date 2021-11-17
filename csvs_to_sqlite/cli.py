@@ -167,6 +167,8 @@ def cli(
         raise click.BadParameter("dbname must not end with .csv")
     if "." not in dbname:
         dbname += ".db"
+    if fixed_columns:
+        fixed_columns = [_.split(":") for _ in fixed_columns]
 
     db_existed = os.path.exists(dbname)
 
@@ -186,6 +188,8 @@ def cli(
                 if shape:
                     shape += ",{}".format(filename_column)
             if fixed_columns:
+                print(fixed_columns)
+                print(len(fixed_columns))
                 for colname, value in fixed_columns:
                     df[colname] = value
                     if shape:
