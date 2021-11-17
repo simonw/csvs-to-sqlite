@@ -369,9 +369,12 @@ def test_fixed_column():
                 "--fixed-column",
                 "col1",
                 "foo",
-                "--fixed-column",
+                "--fixed-column-int",
                 "col2",
-                "bar"
+                "1",
+                "--fixed-column-float",
+                "col3",
+                "1.1"
             ]
         )
         assert result.exit_code == 0
@@ -386,16 +389,17 @@ def test_fixed_column():
             (5, "candidate", "TEXT", 0, None, 0),
             (6, "votes", "INTEGER", 0, None, 0),
             (7, "col1", "TEXT", 0, None, 0),
-            (8, "col2", "TEXT", 0, None, 0),
+            (8, "col2", "INTEGER", 0, None, 0),
+            (9, "col3", "REAL", 0, None, 0),
         ] == list(conn.execute("PRAGMA table_info(test)"))
         rows = conn.execute("select * from test").fetchall()
         assert [
-            ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41, "foo", "bar"),
-            ("Yolo", 100001, "President", None, "PAF", "Gloria Estela La Riva", 8, "foo", "bar"),
-            ("Yolo", 100001, "Proposition 51", None, None, "No", 398, "foo", "bar"),
-            ("Yolo", 100001, "Proposition 51", None, None, "Yes", 460, "foo", "bar"),
-            ("Yolo", 100001, "State Assembly", 7, "DEM", "Kevin McCarty", 572, "foo", "bar"),
-            ("Yolo", 100001, "State Assembly", 7, "REP", "Ryan K. Brown", 291, "foo", "bar"),
+            ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41, "foo", 1, 1.1),
+            ("Yolo", 100001, "President", None, "PAF", "Gloria Estela La Riva", 8, "foo", 1, 1.1),
+            ("Yolo", 100001, "Proposition 51", None, None, "No", 398, "foo", 1, 1.1),
+            ("Yolo", 100001, "Proposition 51", None, None, "Yes", 460, "foo", 1, 1.1),
+            ("Yolo", 100001, "State Assembly", 7, "DEM", "Kevin McCarty", 572, "foo", 1, 1.1),
+            ("Yolo", 100001, "State Assembly", 7, "REP", "Ryan K. Brown", 291, "foo", 1, 1.1),
         ] == rows
 
 

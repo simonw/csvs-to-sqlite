@@ -109,7 +109,23 @@ import sqlite3
     "--fixed-column",
     type=(str, str),
     multiple=True,
-    help="Populate column with a fixed value",
+    help="Populate column with a fixed string",
+    default=None,
+)
+@click.option(
+    "fixed_columns_int",
+    "--fixed-column-int",
+    type=(str, int),
+    multiple=True,
+    help="Populate column with a fixed integer",
+    default=None,
+)
+@click.option(
+    "fixed_columns_float",
+    "--fixed-column-float",
+    type=(str, float),
+    multiple=True,
+    help="Populate column with a fixed float",
     default=None,
 )
 @click.option(
@@ -148,6 +164,8 @@ def cli(
     shape,
     filename_column,
     fixed_columns,
+    fixed_columns_int,
+    fixed_columns_float,
     no_index_fks,
     no_fulltext_fks,
     just_strings,
@@ -188,6 +206,16 @@ def cli(
             if fixed_columns:
                 for colname, value in fixed_columns:
                     df[colname] = value
+                    if shape:
+                        shape += ",{}".format(colname)
+            if fixed_columns_int:
+                for colname, value in fixed_columns_int:
+                    df[colname] = int(value)
+                    if shape:
+                        shape += ",{}".format(colname)
+            if fixed_columns_float:
+                for colname, value in fixed_columns_float:
+                    df[colname] = float(value)
                     if shape:
                         shape += ",{}".format(colname)
             sql_type_overrides = apply_shape(df, shape)
