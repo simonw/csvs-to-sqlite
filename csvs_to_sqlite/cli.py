@@ -105,9 +105,11 @@ import sqlite3
     default=None,
 )
 @click.option(
+    "fixed_columns",
     "--fixed-column",
+    type=(str, str),
     multiple=True,
-    help="For colname:value, add a column colname and populate with value",
+    help="Populate column with a fixed value",
     default=None,
 )
 @click.option(
@@ -145,7 +147,7 @@ def cli(
     index,
     shape,
     filename_column,
-    fixed_column,
+    fixed_columns,
     no_index_fks,
     no_fulltext_fks,
     just_strings,
@@ -158,8 +160,6 @@ def cli(
     # make plural for more readable code:
     extract_columns = extract_column
     del extract_column
-    fixed_columns = fixed_column
-    del fixed_column
 
     if extract_columns:
         click.echo("extract_columns={}".format(extract_columns))
@@ -167,8 +167,6 @@ def cli(
         raise click.BadParameter("dbname must not end with .csv")
     if "." not in dbname:
         dbname += ".db"
-    if fixed_columns:
-        fixed_columns = [_.split(":") for _ in fixed_columns]
 
     db_existed = os.path.exists(dbname)
 

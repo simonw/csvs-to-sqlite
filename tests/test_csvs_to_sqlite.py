@@ -367,9 +367,11 @@ def test_fixed_column():
                 "test.csv",
                 "test.db",
                 "--fixed-column",
-                "col1:foo",
+                "col1",
+                "foo",
                 "--fixed-column",
-                "col2:bar"
+                "col2",
+                "bar"
             ]
         )
         assert result.exit_code == 0
@@ -407,9 +409,11 @@ def test_fixed_column_with_shape():
                 "test.csv",
                 "test.db",
                 "--fixed-column",
-                "col1:foo",
+                "col1",
+                "foo",
                 "--fixed-column",
-                "col2:bar",
+                "col2",
+                "bar",
                 "--shape",
                 "county:Cty,votes:Vts",
             ],

@@ -148,8 +148,7 @@ They will be populated with IDs that reference the new derived tables.
                                    csvcol:dbcol(TYPE),...
       --filename-column TEXT       Add a column with this name and populate with
                                    CSV file name
-      --fixed-column TEXT          For colname:value, add a column colname and
-                                   populate with value
+      --fixed-column TEXT          Populate column with a fixed value
       --no-index-fks               Skip adding index to foreign key columns
                                    created using --extract-column (default is to
                                    add them)
