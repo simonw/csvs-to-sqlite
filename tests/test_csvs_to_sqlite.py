@@ -357,6 +357,70 @@ def test_filename_column_with_shape():
         ).fetchall()
 
 
+def test_fixed_column():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("test.csv", "w").write(CSV)
+        result = runner.invoke(
+            cli.cli,
+            [
+                "test.csv",
+                "test.db",
+                "--fixed-column",
+                "test1:hello",
+                "--fixed-column",
+                "test2:world"
+            ]
+        )
+        assert result.exit_code == 0
+        assert result.output.strip().endswith("Created test.db from 1 CSV file")
+        conn = sqlite3.connect("test.db")
+        assert [
+            (0, "county", "TEXT", 0, None, 0),
+            (1, "precinct", "INTEGER", 0, None, 0),
+            (2, "office", "TEXT", 0, None, 0),
+            (3, "district", "INTEGER", 0, None, 0),
+            (4, "party", "TEXT", 0, None, 0),
+            (5, "candidate", "TEXT", 0, None, 0),
+            (6, "votes", "INTEGER", 0, None, 0),
+            (7, "test1", "TEXT", 0, None, 0),
+            (8, "test2", "TEXT", 0, None, 0),
+        ] == list(conn.execute("PRAGMA table_info(test)"))
+        rows = conn.execute("select * from test").fetchall()
+        assert [
+            ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41, "hello", "world"),
+            ("Yolo", 100001, "President", None, "PAF", "Gloria Estela La Riva", 8, "hello", "world"),
+            ("Yolo", 100001, "Proposition 51", None, None, "No", 398, "hello", "world"),
+            ("Yolo", 100001, "Proposition 51", None, None, "Yes", 460, "hello", "world"),
+            ("Yolo", 100001, "State Assembly", 7, "DEM", "Kevin McCarty", 572, "hello", "world"),
+            ("Yolo", 100001, "State Assembly", 7, "REP", "Ryan K. Brown", 291, "hello", "world"),
+        ] == rows
+
+
+def test_fixed_column_with_shape():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("test.csv", "w").write(CSV)
+        result = runner.invoke(
+            cli.cli,
+            [
+                "test.csv",
+                "test.db",
+                "--fixed-column",
+                "test1:hello",
+                "--fixed-column",
+                "test2:world",
+                "--shape",
+                "county:Cty,votes:Vts",
+            ],
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect("test.db")
+        assert [("Yolo", 41, "test", "hello", "world")] == conn.execute(
+            "select Cty, Vts, source from test limit 1"
+        ).fetchall()
+
+
 def test_shape_with_extract_columns():
     runner = CliRunner()
     with runner.isolated_filesystem():
