@@ -29,8 +29,7 @@ setup(
         "py-lru-cache~=0.1.4",
         "six",
     ],
-    extras_require={"test": ["pytest"]},
-    tests_require=["csvs-to-sqlite[test]"],
+    extras_require={"test": ["pytest", "cogapp"]},
     entry_points="""
         [console_scripts]
         csvs-to-sqlite=csvs_to_sqlite.cli:cli

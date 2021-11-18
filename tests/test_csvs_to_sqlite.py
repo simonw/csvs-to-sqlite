@@ -1,6 +1,10 @@
 from click.testing import CliRunner
 from csvs_to_sqlite import cli
 from six import string_types, text_type
+from cogapp import Cog
+import sys
+from io import StringIO
+import pathlib
 import sqlite3
 
 CSV = """county,precinct,office,district,party,candidate,votes
@@ -688,3 +692,13 @@ def test_just_strings_with_date_specified():
 
         for name, gross, dt in actual:
             assert isinstance(gross, text_type)
+
+
+def test_if_cog_needs_to_be_run():
+    _stdout = sys.stdout
+    sys.stdout = StringIO()
+    readme = pathlib.Path(__file__).parent.parent / "README.md"
+    result = Cog().main(["cog", str(readme)])
+    output = sys.stdout.getvalue()
+    sys.stdout = _stdout
+    assert output == readme.read_text()
