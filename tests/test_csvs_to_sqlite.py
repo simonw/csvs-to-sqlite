@@ -394,7 +394,7 @@ def test_fixed_column():
             (7, "col1", "TEXT", 0, None, 0),
             (8, "col2", "TEXT", 0, None, 0),
             (9, "col3", "INTEGER", 0, None, 0),
-            (10, "col3", "REAL", 0, None, 0),
+            (10, "col4", "REAL", 0, None, 0),
         ] == list(conn.execute("PRAGMA table_info(test)"))
         rows = conn.execute("select * from test").fetchall()
         assert [
