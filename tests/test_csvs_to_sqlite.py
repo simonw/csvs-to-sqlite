@@ -358,6 +358,9 @@ def test_filename_column_with_shape():
 
 
 def test_fixed_column():
+    """
+    Tests that all three fixed_column options are handled correctly.
+    """
     runner = CliRunner()
     with runner.isolated_filesystem():
         open("test.csv", "w").write(CSV)
@@ -408,6 +411,9 @@ def test_fixed_column():
 
 
 def test_fixed_column_with_shape():
+    """
+    Test that fixed_column works with shape.
+    """
     runner = CliRunner()
     with runner.isolated_filesystem():
         open("test.csv", "w").write(CSV)
