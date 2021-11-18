@@ -357,6 +357,88 @@ def test_filename_column_with_shape():
         ).fetchall()
 
 
+def test_fixed_column():
+    """
+    Tests that all three fixed_column options are handled correctly.
+    """
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("test.csv", "w").write(CSV)
+        result = runner.invoke(
+            cli.cli,
+            [
+                "test.csv",
+                "test.db",
+                "--fixed-column",
+                "col1",
+                "foo",
+                "--fixed-column",
+                "col2",
+                "bar",
+                "--fixed-column-int",
+                "col3",
+                "1",
+                "--fixed-column-float",
+                "col4",
+                "1.1"
+            ]
+        )
+        assert result.exit_code == 0
+        assert result.output.strip().endswith("Created test.db from 1 CSV file")
+        conn = sqlite3.connect("test.db")
+        assert [
+            (0, "county", "TEXT", 0, None, 0),
+            (1, "precinct", "INTEGER", 0, None, 0),
+            (2, "office", "TEXT", 0, None, 0),
+            (3, "district", "INTEGER", 0, None, 0),
+            (4, "party", "TEXT", 0, None, 0),
+            (5, "candidate", "TEXT", 0, None, 0),
+            (6, "votes", "INTEGER", 0, None, 0),
+            (7, "col1", "TEXT", 0, None, 0),
+            (8, "col2", "TEXT", 0, None, 0),
+            (9, "col3", "INTEGER", 0, None, 0),
+            (10, "col4", "REAL", 0, None, 0),
+        ] == list(conn.execute("PRAGMA table_info(test)"))
+        rows = conn.execute("select * from test").fetchall()
+        assert [
+            ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41, "foo", "bar", 1, 1.1),
+            ("Yolo", 100001, "President", None, "PAF", "Gloria Estela La Riva", 8, "foo", "bar", 1, 1.1),
+            ("Yolo", 100001, "Proposition 51", None, None, "No", 398, "foo", "bar", 1, 1.1),
+            ("Yolo", 100001, "Proposition 51", None, None, "Yes", 460, "foo", "bar", 1, 1.1),
+            ("Yolo", 100001, "State Assembly", 7, "DEM", "Kevin McCarty", 572, "foo", "bar", 1, 1.1),
+            ("Yolo", 100001, "State Assembly", 7, "REP", "Ryan K. Brown", 291, "foo", "bar", 1, 1.1),
+        ] == rows
+
+
+def test_fixed_column_with_shape():
+    """
+    Test that fixed_column works with shape.
+    """
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("test.csv", "w").write(CSV)
+        result = runner.invoke(
+            cli.cli,
+            [
+                "test.csv",
+                "test.db",
+                "--fixed-column",
+                "col1",
+                "foo",
+                "--fixed-column",
+                "col2",
+                "bar",
+                "--shape",
+                "county:Cty,votes:Vts",
+            ],
+        )
+        assert result.exit_code == 0
+        conn = sqlite3.connect("test.db")
+        assert [("Yolo", 41, "foo", "bar")] == conn.execute(
+            "select Cty, Vts, col1, col2 from test limit 1"
+        ).fetchall()
+
+
 def test_shape_with_extract_columns():
     runner = CliRunner()
     with runner.isolated_filesystem():

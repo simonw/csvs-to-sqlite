@@ -105,6 +105,30 @@ import sqlite3
     default=None,
 )
 @click.option(
+    "fixed_columns",
+    "--fixed-column",
+    type=(str, str),
+    multiple=True,
+    help="Populate column with a fixed string",
+    default=None,
+)
+@click.option(
+    "fixed_columns_int",
+    "--fixed-column-int",
+    type=(str, int),
+    multiple=True,
+    help="Populate column with a fixed integer",
+    default=None,
+)
+@click.option(
+    "fixed_columns_float",
+    "--fixed-column-float",
+    type=(str, float),
+    multiple=True,
+    help="Populate column with a fixed float",
+    default=None,
+)
+@click.option(
     "--no-index-fks",
     "no_index_fks",
     is_flag=True,
@@ -139,6 +163,9 @@ def cli(
     index,
     shape,
     filename_column,
+    fixed_columns,
+    fixed_columns_int,
+    fixed_columns_float,
     no_index_fks,
     no_fulltext_fks,
     just_strings,
@@ -176,6 +203,21 @@ def cli(
                 df[filename_column] = name
                 if shape:
                     shape += ",{}".format(filename_column)
+            if fixed_columns:
+                for colname, value in fixed_columns:
+                    df[colname] = value
+                    if shape:
+                        shape += ",{}".format(colname)
+            if fixed_columns_int:
+                for colname, value in fixed_columns_int:
+                    df[colname] = value
+                    if shape:
+                        shape += ",{}".format(colname)
+            if fixed_columns_float:
+                for colname, value in fixed_columns_float:
+                    df[colname] = value
+                    if shape:
+                        shape += ",{}".format(colname)
             sql_type_overrides = apply_shape(df, shape)
             apply_dates_and_datetimes(df, date, datetime, datetime_format)
             dataframes.append(df)
