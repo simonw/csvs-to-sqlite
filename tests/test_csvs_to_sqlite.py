@@ -384,8 +384,8 @@ def test_fixed_column():
                 "1",
                 "--fixed-column-float",
                 "col4",
-                "1.1"
-            ]
+                "1.1",
+            ],
         )
         assert result.exit_code == 0
         assert result.output.strip().endswith("Created test.db from 1 CSV file")
@@ -405,12 +405,84 @@ def test_fixed_column():
         ] == list(conn.execute("PRAGMA table_info(test)"))
         rows = conn.execute("select * from test").fetchall()
         assert [
-            ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41, "foo", "bar", 1, 1.1),
-            ("Yolo", 100001, "President", None, "PAF", "Gloria Estela La Riva", 8, "foo", "bar", 1, 1.1),
-            ("Yolo", 100001, "Proposition 51", None, None, "No", 398, "foo", "bar", 1, 1.1),
-            ("Yolo", 100001, "Proposition 51", None, None, "Yes", 460, "foo", "bar", 1, 1.1),
-            ("Yolo", 100001, "State Assembly", 7, "DEM", "Kevin McCarty", 572, "foo", "bar", 1, 1.1),
-            ("Yolo", 100001, "State Assembly", 7, "REP", "Ryan K. Brown", 291, "foo", "bar", 1, 1.1),
+            (
+                "Yolo",
+                100001,
+                "President",
+                None,
+                "LIB",
+                "Gary Johnson",
+                41,
+                "foo",
+                "bar",
+                1,
+                1.1,
+            ),
+            (
+                "Yolo",
+                100001,
+                "President",
+                None,
+                "PAF",
+                "Gloria Estela La Riva",
+                8,
+                "foo",
+                "bar",
+                1,
+                1.1,
+            ),
+            (
+                "Yolo",
+                100001,
+                "Proposition 51",
+                None,
+                None,
+                "No",
+                398,
+                "foo",
+                "bar",
+                1,
+                1.1,
+            ),
+            (
+                "Yolo",
+                100001,
+                "Proposition 51",
+                None,
+                None,
+                "Yes",
+                460,
+                "foo",
+                "bar",
+                1,
+                1.1,
+            ),
+            (
+                "Yolo",
+                100001,
+                "State Assembly",
+                7,
+                "DEM",
+                "Kevin McCarty",
+                572,
+                "foo",
+                "bar",
+                1,
+                1.1,
+            ),
+            (
+                "Yolo",
+                100001,
+                "State Assembly",
+                7,
+                "REP",
+                "Ryan K. Brown",
+                291,
+                "foo",
+                "bar",
+                1,
+                1.1,
+            ),
         ] == rows
 
 
@@ -701,4 +773,6 @@ def test_if_cog_needs_to_be_run():
     result = Cog().main(["cog", str(readme)])
     output = sys.stdout.getvalue()
     sys.stdout = _stdout
-    assert output == readme.read_text()
+    assert (
+        output == readme.read_text()
+    ), "Run 'cog -r README.md' to update help in README"
