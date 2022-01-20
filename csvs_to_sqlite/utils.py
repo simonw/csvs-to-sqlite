@@ -1,5 +1,6 @@
 import dateparser
 import os
+import stat
 import fnmatch
 import hashlib
 import lru
@@ -262,6 +263,36 @@ def table_exists(conn, table):
     """,
         [table],
     ).fetchone()[0]
+
+
+def csv_md5_checksum(path):
+    with open(path, "rb") as f:
+        file_hash = hashlib.md5()
+        for chunk in iter(lambda: f.read(8192), b''):
+            file_hash.update(chunk)
+    return file_hash.hexdigest()
+
+
+def table_outdated(conn, path):
+    csv_cs = csv_md5_checksum(path)
+
+    if table_exists(conn, ".csvs-meta"):
+        csv_meta_entry = conn.execute("select * from [.csvs-meta] where csv_path=?", [path]).fetchone()
+        if csv_meta_entry is None:
+            return True
+        return csv_cs != csv_meta_entry[1]
+    return True
+
+
+def update_csv_meta(conn, path):
+    conn.execute("CREATE TABLE IF NOT EXISTS [.csvs-meta] (csv_path TEXT PRIMARY KEY, md5_checksum INTEGER)")
+
+    csv_modified = csv_md5_checksum(path)
+    conn.execute(
+        """
+        INSERT INTO [.csvs-meta] VALUES (?, ?)
+        ON CONFLICT(csv_path) DO UPDATE SET md5_checksum=excluded.md5_checksum;
+    """, [path, csv_modified])
 
 
 def drop_table(conn, table):
