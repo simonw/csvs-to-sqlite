@@ -1,6 +1,10 @@
 Changelog
 =========
 
+1.3.1 (2022-03-02)
+------------------
+- Bumped Click dependency to `"click~=8.0"`
+
 0.9 (2019-01-16)
 ----------------
 - Support for loading CSVs directly from URLs, thanks @betatim - #38
