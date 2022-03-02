@@ -129,10 +129,8 @@ Options:
                                   constants. Use one of QUOTE_MINIMAL (0),
                                   QUOTE_ALL (1), QUOTE_NONNUMERIC (2) or
                                   QUOTE_NONE (3).
-
   --skip-errors                   Skip lines with too many fields instead of
                                   stopping the import
-
   --replace-tables                Replace tables if they already exist
   -t, --table TEXT                Table to use (instead of using CSV filename)
   -c, --extract-column TEXT       One or more columns to 'extract' into a
@@ -147,29 +145,21 @@ Options:
                                   table, with an id column primary key and a
                                   state_name column containing the strings from
                                   the original column.
-
   -d, --date TEXT                 One or more columns to parse into ISO
                                   formatted dates
-
   -dt, --datetime TEXT            One or more columns to parse into ISO
                                   formatted datetimes
-
   -df, --datetime-format TEXT     One or more custom date format strings to try
                                   when parsing dates/datetimes
-
   -pk, --primary-key TEXT         One or more columns to use as the primary key
   -f, --fts TEXT                  One or more columns to use to populate a full-
                                   text index
-
   -i, --index TEXT                Add index on this column (or a compound index
                                   with -i col1,col2)
-
   --shape TEXT                    Custom shape for the DB table - format is
                                   csvcol:dbcol(TYPE),...
-
   --filename-column TEXT          Add a column with this name and populate with
                                   CSV file name
-
   --fixed-column <TEXT TEXT>...   Populate column with a fixed string
   --fixed-column-int <TEXT INTEGER>...
                                   Populate column with a fixed integer
@@ -178,15 +168,12 @@ Options:
   --no-index-fks                  Skip adding index to foreign key columns
                                   created using --extract-column (default is to
                                   add them)
-
   --no-fulltext-fks               Skip adding full-text index on values
                                   extracted using --extract-column (default is
                                   to add them)
-
   --just-strings                  Import all columns as text strings by default
                                   (and, if specified, still obey --shape,
                                   --date/datetime, and --datetime-format)
-
   --version                       Show the version and exit.
   --help                          Show this message and exit.
 

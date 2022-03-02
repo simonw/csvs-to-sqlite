@@ -766,13 +766,16 @@ def test_just_strings_with_date_specified():
             assert isinstance(gross, text_type)
 
 
-def test_if_cog_needs_to_be_run():
-    _stdout = sys.stdout
-    sys.stdout = StringIO()
+def test_foo(capsys):
+    print('123')
+    out, err = capsys.readouterr()
+    assert out == "123\n"
+
+
+def test_if_cog_needs_to_be_run(capsys):
     readme = pathlib.Path(__file__).parent.parent / "README.md"
     result = Cog().main(["cog", str(readme)])
-    output = sys.stdout.getvalue()
-    sys.stdout = _stdout
+    output, err = capsys.readouterr()
     assert (
         output == readme.read_text()
-    ), "Run 'cog -r README.md' to update help in README"
+    ) , "Run 'cog -r README.md' to update help in README"

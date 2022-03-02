@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import io
 import os
 
-VERSION = "1.3"
+VERSION = "1.3.1"
 
 
 def get_long_description():
@@ -23,7 +23,7 @@ setup(
     license="Apache License, Version 2.0",
     packages=find_packages(),
     install_requires=[
-        "click~=7.0",
+        "click~=8.0",
         "dateparser>=1.0",
         "pandas>=1.0",
         "py-lru-cache~=0.1.4",
@@ -45,5 +45,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+
     ],
 )
