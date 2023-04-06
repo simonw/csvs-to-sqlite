@@ -284,7 +284,7 @@ def get_create_table_sql(
     # http://pandas.pydata.org/pandas-docs/stable/gotchas.html#support-for-integer-na
     sql_type_overrides = sql_type_overrides or {}
     if isinstance(df, pd.DataFrame):
-        columns_and_types = df.dtypes.iteritems()
+        columns_and_types = df.dtypes.items()
     elif isinstance(df, pd.Series):
         columns_and_types = [(df.name, df.dtype)]
     for column, dtype in columns_and_types:
