@@ -173,10 +173,10 @@ def test_fts():
         )
         assert result.exit_code == 0
         conn = sqlite3.connect("fts.db")
-        assert (
-            [("Yolo", 100001, "President", "PAF", "Gloria Estela La Riva")]
-            == conn.execute(
-                """
+        assert [
+            ("Yolo", 100001, "President", "PAF", "Gloria Estela La Riva")
+        ] == conn.execute(
+            """
             select county, precinct, office, party, candidate
             from test
             where rowid in (
@@ -184,8 +184,7 @@ def test_fts():
                 where test_fts match 'president gloria'
             )
         """
-            ).fetchall()
-        )
+        ).fetchall()
 
 
 def test_fts_error_on_missing_columns():
@@ -210,10 +209,10 @@ def test_fts_and_extract_columns():
         )
         assert result.exit_code == 0
         conn = sqlite3.connect("fts-extracted.db")
-        assert (
-            [("Yolo", 100001, "President", "PAF", "Gloria Estela La Riva")]
-            == conn.execute(
-                """
+        assert [
+            ("Yolo", 100001, "President", "PAF", "Gloria Estela La Riva")
+        ] == conn.execute(
+            """
             select
                 county, precinct, office.value, party.value, candidate.value
             from test
@@ -225,8 +224,7 @@ def test_fts_and_extract_columns():
                 where test_fts match 'paf gloria'
             )
         """
-            ).fetchall()
-        )
+        ).fetchall()
 
 
 def test_fts_one_column_multiple_aliases():
@@ -243,14 +241,12 @@ def test_fts_one_column_multiple_aliases():
         )
         assert result.exit_code == 0
         conn = sqlite3.connect("fts-extracted.db")
-        assert (
-            [
-                ("The Rock", "Sean Connery", "Nicolas Cage"),
-                ("National Treasure", "Nicolas Cage", "Diane Kruger"),
-                ("Troy", "Diane Kruger", "Orlando Bloom"),
-            ]
-            == conn.execute(
-                """
+        assert [
+            ("The Rock", "Sean Connery", "Nicolas Cage"),
+            ("National Treasure", "Nicolas Cage", "Diane Kruger"),
+            ("Troy", "Diane Kruger", "Orlando Bloom"),
+        ] == conn.execute(
+            """
             select
                 film.value, a1.name, a2.name
             from test
@@ -258,15 +254,12 @@ def test_fts_one_column_multiple_aliases():
                 join actors a1 on test.actor_1 = a1.id
                 join actors a2 on test.actor_2 = a2.id
         """
-            ).fetchall()
-        )
-        assert (
-            [
-                ("National Treasure", "Nicolas Cage", "Diane Kruger"),
-                ("Troy", "Diane Kruger", "Orlando Bloom"),
-            ]
-            == conn.execute(
-                """
+        ).fetchall()
+        assert [
+            ("National Treasure", "Nicolas Cage", "Diane Kruger"),
+            ("Troy", "Diane Kruger", "Orlando Bloom"),
+        ] == conn.execute(
+            """
             select
                 film.value, a1.name, a2.name
             from test
@@ -277,8 +270,7 @@ def test_fts_one_column_multiple_aliases():
                 select rowid from [test_fts] where [test_fts] match 'kruger'
             )
         """
-            ).fetchall()
-        )
+        ).fetchall()
 
 
 def test_shape():
@@ -538,10 +530,8 @@ def test_shape_with_extract_columns():
         )
         assert result.exit_code == 0
         conn = sqlite3.connect("test.db")
-        assert (
-            [("Yolo", "41", "test")]
-            == conn.execute(
-                """
+        assert [("Yolo", "41", "test")] == conn.execute(
+            """
             select
                 Cty.value, Vts.value, Source.value
             from test
@@ -550,8 +540,7 @@ def test_shape_with_extract_columns():
                 left join Source on test.Source = Source.id
             limit 1
         """
-            ).fetchall()
-        )
+        ).fetchall()
 
 
 def test_custom_indexes():
@@ -617,16 +606,13 @@ def test_extract_cols_no_fts():
         )
         assert result.exit_code == 0
         conn = sqlite3.connect("fts-extracted.db")
-        assert (
-            [("test_fts",)]
-            == conn.execute(
-                """
+        assert [("test_fts",)] == conn.execute(
+            """
             select name from sqlite_master
             where type='table' and name like '%_fts'
             and sql like '%USING FTS%'
         """
-            ).fetchall()
-        )
+        ).fetchall()
 
 
 def test_custom_primary_keys():
@@ -770,7 +756,7 @@ def test_if_cog_needs_to_be_run():
     _stdout = sys.stdout
     sys.stdout = StringIO()
     readme = pathlib.Path(__file__).parent.parent / "README.md"
-    result = Cog().main(["cog", str(readme)])
+    Cog().main(["cog", str(readme)])
     output = sys.stdout.getvalue()
     sys.stdout = _stdout
     assert (

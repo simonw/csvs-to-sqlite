@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import click
 from .utils import (
     LoadCsvError,
-    LookupTable,
     PathOrURL,
     add_index,
     apply_dates_and_datetimes,

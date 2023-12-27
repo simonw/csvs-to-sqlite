@@ -163,9 +163,7 @@ class LookupTable:
                     "id" INTEGER PRIMARY KEY,
                     "{value_column}" TEXT
                 );
-            """.format(
-                table_name=self.table_name, value_column=self.value_column
-            )
+            """.format(table_name=self.table_name, value_column=self.value_column)
             self.conn.execute(create_sql)
             if self.index_fts:
                 # Add a FTS index on the value_column
@@ -215,9 +213,7 @@ class LookupTable:
                 cursor.execute(
                     """
                     INSERT INTO "{table_name}" ("{value_column}") VALUES (?);
-                """.format(
-                        table_name=self.table_name, value_column=self.value_column
-                    ),
+                """.format(table_name=self.table_name, value_column=self.value_column),
                     (value,),
                 )
                 id = cursor.lastrowid
