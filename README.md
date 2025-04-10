@@ -7,101 +7,107 @@
 
 Convert CSV files into a SQLite database. Browse and publish that SQLite database with [Datasette](https://github.com/simonw/datasette).
 
+> [!NOTE]
+> This tool is **infrequently maintained**. I suggest [using sqlite-utils](https://sqlite-utils.datasette.io/en/stable/cli.html#inserting-csv-or-tsv-data) for importing CSV and TSV to SQLite instead for most cases.
+
 Basic usage:
-
-    csvs-to-sqlite myfile.csv mydatabase.db
-
+```bash
+csvs-to-sqlite myfile.csv mydatabase.db
+```
 This will create a new SQLite database called `mydatabase.db` containing a
 single table, `myfile`, containing the CSV content.
 
 You can provide multiple CSV files:
-
-    csvs-to-sqlite one.csv two.csv bundle.db
-
+```
+csvs-to-sqlite one.csv two.csv bundle.db
+```
 The `bundle.db` database will contain two tables, `one` and `two`.
 
 This means you can use wildcards:
-
-    csvs-to-sqlite ~/Downloads/*.csv my-downloads.db
-
+```bash
+csvs-to-sqlite ~/Downloads/*.csv my-downloads.db
+```
 If you pass a path to one or more directories, the script will recursively
 search those directories for CSV files and create tables for each one.
-
-    csvs-to-sqlite ~/path/to/directory all-my-csvs.db
-
+```bash
+csvs-to-sqlite ~/path/to/directory all-my-csvs.db
+```
 ## Handling TSV (tab-separated values)
 
 You can use the `-s` option to specify a different delimiter. If you want
 to use a tab character you'll need to apply shell escaping like so:
-
-    csvs-to-sqlite my-file.tsv my-file.db -s $'\t'
-
+```bash
+csvs-to-sqlite my-file.tsv my-file.db -s $'\t'
+```
 ## Refactoring columns into separate lookup tables
 
 Let's say you have a CSV file that looks like this:
-
-    county,precinct,office,district,party,candidate,votes
-    Clark,1,President,,REP,John R. Kasich,5
-    Clark,2,President,,REP,John R. Kasich,0
-    Clark,3,President,,REP,John R. Kasich,7
-
+```csv
+county,precinct,office,district,party,candidate,votes
+Clark,1,President,,REP,John R. Kasich,5
+Clark,2,President,,REP,John R. Kasich,0
+Clark,3,President,,REP,John R. Kasich,7
+```
 ([Real example taken from the Open Elections project](https://github.com/openelections/openelections-data-sd/blob/master/2016/20160607__sd__primary__clark__precinct.csv))
 
 You can now convert selected columns into separate lookup tables using the new
 `--extract-column` option (shortname: `-c`) - for example:
-
-    csvs-to-sqlite openelections-data-*/*.csv \
-        -c county:County:name \
-        -c precinct:Precinct:name \
-        -c office -c district -c party -c candidate \
-        openelections.db
-
+```bash
+csvs-to-sqlite openelections-data-*/*.csv \
+    -c county:County:name \
+    -c precinct:Precinct:name \
+    -c office -c district -c party -c candidate \
+    openelections.db
+```
 The format is as follows:
-
-    column_name:optional_table_name:optional_table_value_column_name
-
+```bash
+column_name:optional_table_name:optional_table_value_column_name
+```
 If you just specify the column name e.g. `-c office`, the following table will
 be created:
-
-    CREATE TABLE "office" (
-        "id" INTEGER PRIMARY KEY,
-        "value" TEXT
-    );
-
+```sql
+CREATE TABLE "office" (
+    "id" INTEGER PRIMARY KEY,
+    "value" TEXT
+);
+```
 If you specify all three options, e.g. `-c precinct:Precinct:name` the table
 will look like this:
-
-    CREATE TABLE "Precinct" (
-        "id" INTEGER PRIMARY KEY,
-        "name" TEXT
-    );
-
+```sql
+CREATE TABLE "Precinct" (
+    "id" INTEGER PRIMARY KEY,
+    "name" TEXT
+);
+```
 The original tables will be created like this:
-
-    CREATE TABLE "ca__primary__san_francisco__precinct" (
-        "county" INTEGER,
-        "precinct" INTEGER,
-        "office" INTEGER,
-        "district" INTEGER,
-        "party" INTEGER,
-        "candidate" INTEGER,
-        "votes" INTEGER,
-        FOREIGN KEY (county) REFERENCES County(id),
-        FOREIGN KEY (party) REFERENCES party(id),
-        FOREIGN KEY (precinct) REFERENCES Precinct(id),
-        FOREIGN KEY (office) REFERENCES office(id),
-        FOREIGN KEY (candidate) REFERENCES candidate(id)
-    );
-
+```sql
+CREATE TABLE "ca__primary__san_francisco__precinct" (
+    "county" INTEGER,
+    "precinct" INTEGER,
+    "office" INTEGER,
+    "district" INTEGER,
+    "party" INTEGER,
+    "candidate" INTEGER,
+    "votes" INTEGER,
+    FOREIGN KEY (county) REFERENCES County(id),
+    FOREIGN KEY (party) REFERENCES party(id),
+    FOREIGN KEY (precinct) REFERENCES Precinct(id),
+    FOREIGN KEY (office) REFERENCES office(id),
+    FOREIGN KEY (candidate) REFERENCES candidate(id)
+);
+```
 They will be populated with IDs that reference the new derived tables.
 
 ## Installation
 
-    $ pip install csvs-to-sqlite
+```bash
+pip install csvs-to-sqlite
+```
 
 `csvs-to-sqlite` now requires Python 3. If you are running Python 2 you can install the last version to support Python 2:
-
-    $ pip install csvs-to-sqlite==0.9.2
+```bash
+pip install csvs-to-sqlite==0.9.2
+```
 
 ## csvs-to-sqlite --help
 
