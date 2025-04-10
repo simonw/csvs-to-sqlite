@@ -39,7 +39,7 @@ def load_csv(
                     filepath,
                     sep=separator,
                     quoting=quoting,
-                    on_bad_lines='skip' if skip_errors else 'error',
+                    on_bad_lines="skip" if skip_errors else "error",
                     low_memory=True,
                     encoding=encoding,
                     usecols=usecols,
