@@ -23,7 +23,7 @@ setup(
     license="Apache License, Version 2.0",
     packages=find_packages(),
     install_requires=[
-        "click~=7.0",
+        "click>=7.0",
         "dateparser>=1.0",
         "pandas>=1.0",
         "py-lru-cache~=0.1.4",
