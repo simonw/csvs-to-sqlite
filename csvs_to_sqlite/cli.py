@@ -14,6 +14,8 @@ from .utils import (
     load_csv,
     refactor_dataframes,
     table_exists,
+    table_outdated,
+    update_csv_meta,
     drop_table,
     to_sql_with_foreign_keys,
 )
@@ -38,6 +40,18 @@ import sqlite3
 )
 @click.option(
     "--replace-tables", is_flag=True, help="Replace tables if they already exist"
+)
+@click.option(
+    "--update-tables",
+    is_flag=True,
+    help=(
+        "Manages an extra table .csvs-meta that keeps "
+        "track of each CSV file and the checksum of the "
+        "file. On subsequent runs, the CSVs will be "
+        "compared against the checksum in the table "
+        "to see what has updated, and only those "
+        "specific tables will be replaced."
+    ),
 )
 @click.option(
     "--table", "-t", help="Table to use (instead of using CSV filename)", default=None
@@ -153,6 +167,7 @@ def cli(
     quoting,
     skip_errors,
     replace_tables,
+    update_tables,
     table,
     extract_column,
     date,
@@ -195,32 +210,36 @@ def cli(
     sql_type_overrides = None
     for name, path in csvs.items():
         try:
-            df = load_csv(
-                path, separator, skip_errors, quoting, shape, just_strings=just_strings
-            )
-            df.table_name = table or name
-            if filename_column:
-                df[filename_column] = name
-                if shape:
-                    shape += ",{}".format(filename_column)
-            if fixed_columns:
-                for colname, value in fixed_columns:
-                    df[colname] = value
+            if not update_tables or table_outdated(conn, path):
+                df = load_csv(
+                    path, separator, skip_errors, quoting, shape, just_strings=just_strings
+                )
+                df.table_name = table or name
+                if filename_column:
+                    df[filename_column] = name
                     if shape:
-                        shape += ",{}".format(colname)
-            if fixed_columns_int:
-                for colname, value in fixed_columns_int:
-                    df[colname] = value
-                    if shape:
-                        shape += ",{}".format(colname)
-            if fixed_columns_float:
-                for colname, value in fixed_columns_float:
-                    df[colname] = value
-                    if shape:
-                        shape += ",{}".format(colname)
-            sql_type_overrides = apply_shape(df, shape)
-            apply_dates_and_datetimes(df, date, datetime, datetime_format)
-            dataframes.append(df)
+                        shape += ",{}".format(filename_column)
+                if fixed_columns:
+                    for colname, value in fixed_columns:
+                        df[colname] = value
+                        if shape:
+                            shape += ",{}".format(colname)
+                if fixed_columns_int:
+                    for colname, value in fixed_columns_int:
+                        df[colname] = value
+                        if shape:
+                            shape += ",{}".format(colname)
+                if fixed_columns_float:
+                    for colname, value in fixed_columns_float:
+                        df[colname] = value
+                        if shape:
+                            shape += ",{}".format(colname)
+                sql_type_overrides = apply_shape(df, shape)
+                apply_dates_and_datetimes(df, date, datetime, datetime_format)
+                dataframes.append(df)
+
+                if update_tables:
+                    update_csv_meta(conn, path)
         except LoadCsvError as e:
             click.echo("Could not load {}: {}".format(path, e), err=True)
 
@@ -245,7 +264,7 @@ def cli(
     for df in refactored:
         # This is a bit trickier because we need to
         # create the table with extra SQL for foreign keys
-        if replace_tables and table_exists(conn, df.table_name):
+        if (replace_tables or update_tables) and table_exists(conn, df.table_name):
             drop_table(conn, df.table_name)
         if table_exists(conn, df.table_name):
             df.to_sql(df.table_name, conn, if_exists="append", index=False)
@@ -284,10 +303,16 @@ def cli(
 
     conn.close()
 
-    if db_existed:
+    if db_existed and not update_tables:
         click.echo(
             "Added {} CSV file{} to {}".format(
                 len(csvs), "" if len(csvs) == 1 else "s", dbname
+            )
+        )
+    elif db_existed and update_tables:
+        click.echo(
+            "Updated {} CSV file{} in {}".format(
+                len(dataframes), "" if len(dataframes) == 1 else "s", dbname
             )
         )
     else:
