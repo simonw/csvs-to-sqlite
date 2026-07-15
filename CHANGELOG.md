@@ -10,8 +10,9 @@ Unreleased
   csvs-to-sqlite 1.3.1, run in an isolated environment using
   `uv run --with csvs-to-sqlite==1.3.1`. pandas and numpy are still installed
   by the `[test]` extra because some of the older tests exercise pandas
-  DataFrame support in `utils.py` directly. The `six` dependency has also
-  been dropped.
+  DataFrame support in `utils.py` directly. The `six` and `py-lru-cache`
+  dependencies have also been dropped - the lookup table cache now uses
+  `functools.lru_cache` from the standard library.
 - The "Loaded 1 dataframes" progress message now reads "Loaded 1 CSV file".
 
 0.9 (2019-01-16)

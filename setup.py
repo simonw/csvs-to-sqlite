@@ -26,7 +26,6 @@ setup(
         "click>=7.0",
         "dateparser>=1.0",
         "sqlite-utils>=3.0",
-        "py-lru-cache~=0.1.4",
     ],
     extras_require={
         # pandas and numpy are needed to run the older tests, which

@@ -1,9 +1,9 @@
 import csv
 import dateparser
+import functools
 import os
 import fnmatch
 import hashlib
-import lru
 import math
 import re
 import sqlite3
@@ -381,7 +381,12 @@ class LookupTable:
             table_name=table_name, value_column=value_column
         )
         self.index_fts = index_fts
-        self.cache = lru.LRUCacheDict(max_size=1000)
+        # Cache the most recently seen 1,000 value-to-id lookups.
+        # The cache wraps the bound method so each LookupTable instance
+        # gets its own cache, garbage-collected along with the instance.
+        self._cached_id_for_string = functools.lru_cache(maxsize=1000)(
+            self._id_for_string
+        )
         self.ensure_table_exists()
 
     def ensure_table_exists(self):
@@ -432,39 +437,35 @@ class LookupTable:
                 value = "{0:g}".format(value)
             else:
                 value = str(value)
-        try:
-            # First try our in-memory cache
-            return self.cache[value]
-        except KeyError:
-            # Next try the database table
-            sql = 'SELECT id FROM "{table_name}" WHERE "{value_column}"=?'.format(
-                table_name=self.table_name, value_column=self.value_column
-            )
-            result = self.conn.execute(sql, (value,)).fetchall()
-            if result:
-                id = result[0][0]
-            else:
-                # Not in DB! Insert it
-                cursor = self.conn.cursor()
-                cursor.execute(
-                    """
-                    INSERT INTO "{table_name}" ("{value_column}") VALUES (?);
-                """.format(table_name=self.table_name, value_column=self.value_column),
-                    (value,),
-                )
-                id = cursor.lastrowid
-                if self.index_fts:
-                    # And update FTS index
-                    sql = """
-                        INSERT INTO "{fts_table_name}" (rowid, "{value_column}") VALUES (?, ?);
-                    """.format(
-                        fts_table_name=self.fts_table_name,
-                        value_column=self.value_column,
-                    )
-                    cursor.execute(sql, (id, value))
+        return self._cached_id_for_string(value)
 
-            self.cache[value] = id
-            return id
+    def _id_for_string(self, value):
+        # First try the database table
+        sql = 'SELECT id FROM "{table_name}" WHERE "{value_column}"=?'.format(
+            table_name=self.table_name, value_column=self.value_column
+        )
+        result = self.conn.execute(sql, (value,)).fetchall()
+        if result:
+            return result[0][0]
+        # Not in DB! Insert it
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO "{table_name}" ("{value_column}") VALUES (?);
+        """.format(table_name=self.table_name, value_column=self.value_column),
+            (value,),
+        )
+        id = cursor.lastrowid
+        if self.index_fts:
+            # And update FTS index
+            sql = """
+                INSERT INTO "{fts_table_name}" (rowid, "{value_column}") VALUES (?, ?);
+            """.format(
+                fts_table_name=self.fts_table_name,
+                value_column=self.value_column,
+            )
+            cursor.execute(sql, (id, value))
+        return id
 
 
 def refactor_dataframes(conn, dataframes, foreign_keys, index_fts):
