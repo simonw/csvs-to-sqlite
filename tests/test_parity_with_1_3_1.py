@@ -330,6 +330,12 @@ CASES = [
 ]
 
 
+def _comparable_stdout(stdout):
+    # The "Loaded N dataframes" progress line was deliberately reworded
+    # after 1.3.1, so it is excluded from the comparison
+    return [line for line in stdout.splitlines() if not line.startswith("Loaded ")]
+
+
 def _write_files(directory, files):
     for relpath, content in files.items():
         path = directory / relpath
@@ -421,7 +427,9 @@ def test_parity_with_old_version(tmp_path, files, invocations, queries):
         ), "exit codes differ.\nold stderr: {}\nnew stderr: {}".format(
             old_result.stderr, new_result.stderr
         )
-        assert old_result.stdout == new_result.stdout
+        assert _comparable_stdout(old_result.stdout) == _comparable_stdout(
+            new_result.stdout
+        )
 
     old_summary = _summarize(old_dir / "out.db")
     new_summary = _summarize(new_dir / "out.db")
