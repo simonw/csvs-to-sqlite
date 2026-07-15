@@ -26,13 +26,13 @@ CSV_DATES = """headline,date,datetime
 First headline,3rd May 2017,10pm on April 4 1938
 Second headline,04/30/2005,5:45 10 December 2009"""
 
-# Prepended to every script below: any attempt to import pandas or numpy
-# (directly or transitively) raises ImportError.
+# Prepended to every script below: any attempt to import pandas, numpy or
+# lru (py-lru-cache) - directly or transitively - raises ImportError.
 BLOCKER = textwrap.dedent("""
     import sys
 
     class _BlockPandasNumpy:
-        BLOCKED = {"pandas", "numpy"}
+        BLOCKED = {"pandas", "numpy", "lru"}
 
         def find_spec(self, name, path=None, target=None):
             if name.partition(".")[0] in self.BLOCKED:
