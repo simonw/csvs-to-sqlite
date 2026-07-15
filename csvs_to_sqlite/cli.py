@@ -224,7 +224,11 @@ def cli(
         except LoadCsvError as e:
             click.echo("Could not load {}: {}".format(path, e), err=True)
 
-    click.echo("Loaded {} dataframes".format(len(dataframes)))
+    click.echo(
+        "Loaded {} CSV file{}".format(
+            len(dataframes), "" if len(dataframes) == 1 else "s"
+        )
+    )
 
     # Use extract_columns to build a column:(table,label) dictionary
     foreign_keys = {}

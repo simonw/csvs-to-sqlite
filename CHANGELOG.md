@@ -12,6 +12,10 @@ Unreleased
   by the `[test]` extra because some of the older tests exercise pandas
   DataFrame support in `utils.py` directly. The `six` dependency has also
   been dropped.
+- Integer columns containing values outside SQLite's signed 64-bit range
+  are now stored as TEXT, preserving their exact value. Previous versions
+  crashed with an `OverflowError`.
+- The "Loaded 1 dataframes" progress message now reads "Loaded 1 CSV file".
 
 0.9 (2019-01-16)
 ----------------
