@@ -100,9 +100,7 @@ SEMICOLON_CSV = """a;b;c
 1;hello;2.5
 2;world;3.5"""
 
-LATIN1_CSV_BYTES = "name,city\nJosé,México\nRémy,Montréal\n".encode(
-    "latin-1"
-)
+LATIN1_CSV_BYTES = "name,city\nJosé,México\nRémy,Montréal\n".encode("latin-1")
 
 
 def _case(name, files, invocations, queries=None):
@@ -116,8 +114,16 @@ CASES = [
         {"test.csv": VOTES_CSV},
         [
             [
-                "test.csv", "out.db",
-                "-c", "office", "-c", "district", "-c", "party", "-c", "candidate",
+                "test.csv",
+                "out.db",
+                "-c",
+                "office",
+                "-c",
+                "district",
+                "-c",
+                "party",
+                "-c",
+                "candidate",
             ]
         ],
     ),
@@ -132,9 +138,18 @@ CASES = [
         {"test.csv": VOTES_CSV},
         [
             [
-                "test.csv", "out.db",
-                "-c", "office", "-c", "party", "-c", "candidate",
-                "-f", "party", "-f", "candidate",
+                "test.csv",
+                "out.db",
+                "-c",
+                "office",
+                "-c",
+                "party",
+                "-c",
+                "candidate",
+                "-f",
+                "party",
+                "-f",
+                "candidate",
             ]
         ],
         ["select rowid from test_fts where test_fts match 'paf gloria'"],
@@ -144,10 +159,20 @@ CASES = [
         {"test.csv": MULTI_CSV},
         [
             [
-                "test.csv", "out.db",
-                "-c", "film",
-                "-c", "actor_1:actors:name", "-c", "actor_2:actors:name",
-                "-f", "film", "-f", "actor_1", "-f", "actor_2",
+                "test.csv",
+                "out.db",
+                "-c",
+                "film",
+                "-c",
+                "actor_1:actors:name",
+                "-c",
+                "actor_2:actors:name",
+                "-f",
+                "film",
+                "-f",
+                "actor_1",
+                "-f",
+                "actor_2",
             ]
         ],
         ["select rowid from test_fts where test_fts match 'kruger'"],
@@ -157,8 +182,12 @@ CASES = [
         {"test.csv": VOTES_CSV},
         [
             [
-                "test.csv", "out.db",
-                "-c", "office", "-c", "party",
+                "test.csv",
+                "out.db",
+                "-c",
+                "office",
+                "-c",
+                "party",
                 "--no-fulltext-fks",
             ]
         ],
@@ -178,10 +207,18 @@ CASES = [
         {"test.csv": VOTES_CSV},
         [
             [
-                "test.csv", "out.db",
-                "--filename-column", "Source",
-                "--shape", "county:Cty,votes:Vts",
-                "-c", "Cty", "-c", "Vts", "-c", "Source",
+                "test.csv",
+                "out.db",
+                "--filename-column",
+                "Source",
+                "--shape",
+                "county:Cty,votes:Vts",
+                "-c",
+                "Cty",
+                "-c",
+                "Vts",
+                "-c",
+                "Source",
             ]
         ],
     ),
@@ -195,9 +232,11 @@ CASES = [
         {"test.csv": VOTES_CSV},
         [
             [
-                "test.csv", "out.db",
+                "test.csv",
+                "out.db",
                 "--just-strings",
-                "--shape", "county:Cty,district:district,votes:Vts(REAL)",
+                "--shape",
+                "county:Cty,district:district,votes:Vts(REAL)",
             ]
         ],
     ),
@@ -206,11 +245,19 @@ CASES = [
         {"test1.csv": VOTES_CSV, "test2.csv": MULTI_CSV},
         [
             [
-                ".", "out.db",
-                "--filename-column", "source",
-                "--fixed-column", "col1", "foo",
-                "--fixed-column-int", "col3", "1",
-                "--fixed-column-float", "col4", "1.1",
+                ".",
+                "out.db",
+                "--filename-column",
+                "source",
+                "--fixed-column",
+                "col1",
+                "foo",
+                "--fixed-column-int",
+                "col3",
+                "1",
+                "--fixed-column-float",
+                "col4",
+                "1.1",
             ]
         ],
     ),
@@ -369,10 +416,10 @@ def test_parity_with_old_version(tmp_path, files, invocations, queries):
     for args in invocations:
         old_result = _run_old(args, old_dir)
         new_result = _run_new(args, new_dir)
-        assert old_result.returncode == new_result.returncode, (
-            "exit codes differ.\nold stderr: {}\nnew stderr: {}".format(
-                old_result.stderr, new_result.stderr
-            )
+        assert (
+            old_result.returncode == new_result.returncode
+        ), "exit codes differ.\nold stderr: {}\nnew stderr: {}".format(
+            old_result.stderr, new_result.stderr
         )
         assert old_result.stdout == new_result.stdout
 

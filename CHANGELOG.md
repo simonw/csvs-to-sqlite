@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Unreleased
+----------
+- Rewritten to use [sqlite-utils](https://sqlite-utils.datasette.io/) and the
+  Python standard library `csv` module instead of pandas and numpy. Behavior
+  is unchanged - including pandas-style type inference for CSV columns - and
+  is pinned by a new test suite that compares output databases against
+  csvs-to-sqlite 1.3.1, run in an isolated environment using
+  `uv run --with csvs-to-sqlite==1.3.1`. pandas and numpy are still installed
+  by the `[test]` extra because some of the older tests exercise pandas
+  DataFrame support in `utils.py` directly. The `six` dependency has also
+  been dropped.
+
 0.9 (2019-01-16)
 ----------------
 - Support for loading CSVs directly from URLs, thanks @betatim - #38

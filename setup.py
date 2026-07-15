@@ -25,11 +25,14 @@ setup(
     install_requires=[
         "click>=7.0",
         "dateparser>=1.0",
-        "pandas>=1.0",
+        "sqlite-utils>=3.0",
         "py-lru-cache~=0.1.4",
-        "six",
     ],
-    extras_require={"test": ["pytest", "cogapp"]},
+    extras_require={
+        # pandas and numpy are needed to run the older tests, which
+        # exercise pandas DataFrame support in utils.py directly
+        "test": ["pytest", "cogapp", "pandas>=1.0", "numpy", "six"]
+    },
     entry_points="""
         [console_scripts]
         csvs-to-sqlite=csvs_to_sqlite.cli:cli

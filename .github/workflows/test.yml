@@ -19,6 +19,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: pip
         cache-dependency-path: setup.py
+    - name: Install uv
+      # Used by tests/test_parity_with_1_3_1.py to run the old
+      # pandas-based release of this tool for comparison
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
         pip install -e '.[test]'

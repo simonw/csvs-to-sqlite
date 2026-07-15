@@ -28,8 +28,7 @@ Second headline,04/30/2005,5:45 10 December 2009"""
 
 # Prepended to every script below: any attempt to import pandas or numpy
 # (directly or transitively) raises ImportError.
-BLOCKER = textwrap.dedent(
-    """
+BLOCKER = textwrap.dedent("""
     import sys
 
     class _BlockPandasNumpy:
@@ -43,8 +42,7 @@ BLOCKER = textwrap.dedent(
                 )
 
     sys.meta_path.insert(0, _BlockPandasNumpy())
-    """
-)
+    """)
 
 
 def run_with_pandas_blocked(code, cwd):
@@ -83,10 +81,9 @@ def test_cli_runs_without_pandas_or_numpy(tmp_path):
     result = run_with_pandas_blocked(code, tmp_path)
     assert result.returncode == 0, result.stderr
     conn = sqlite3.connect(str(tmp_path / "test.db"))
-    assert [
-        ("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41)
-    ] == conn.execute(
-        """
+    assert (
+        [("Yolo", 100001, "President", None, "LIB", "Gary Johnson", 41)]
+        == conn.execute("""
         select county, precinct, office.value, district, party.value,
             candidate.value, votes
         from test
@@ -94,8 +91,8 @@ def test_cli_runs_without_pandas_or_numpy(tmp_path):
             left join party on test.party = party.id
             left join candidate on test.candidate = candidate.id
         limit 1
-        """
-    ).fetchall()
+        """).fetchall()
+    )
 
 
 def test_dates_work_without_pandas_or_numpy(tmp_path):

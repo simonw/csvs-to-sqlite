@@ -1,6 +1,5 @@
-from __future__ import absolute_import
-
 import click
+from sqlite_utils import Database
 from .utils import (
     LoadCsvError,
     LookupTable,
@@ -11,6 +10,7 @@ from .utils import (
     best_fts_version,
     csvs_from_paths,
     generate_and_populate_fts,
+    insert_frame,
     load_csv,
     refactor_dataframes,
     table_exists,
@@ -18,7 +18,6 @@ from .utils import (
     to_sql_with_foreign_keys,
 )
 import os
-import sqlite3
 
 
 @click.command()
@@ -188,7 +187,8 @@ def cli(
 
     db_existed = os.path.exists(dbname)
 
-    conn = sqlite3.connect(dbname)
+    db = Database(dbname)
+    conn = db.conn
 
     dataframes = []
     csvs = csvs_from_paths(paths)
@@ -248,10 +248,10 @@ def cli(
         if replace_tables and table_exists(conn, df.table_name):
             drop_table(conn, df.table_name)
         if table_exists(conn, df.table_name):
-            df.to_sql(df.table_name, conn, if_exists="append", index=False)
+            insert_frame(db, df, df.table_name)
         else:
             to_sql_with_foreign_keys(
-                conn,
+                db,
                 df,
                 df.table_name,
                 foreign_keys,
@@ -282,6 +282,7 @@ def cli(
 
         generate_and_populate_fts(conn, created_tables.keys(), fts, foreign_keys)
 
+    conn.commit()
     conn.close()
 
     if db_existed:
