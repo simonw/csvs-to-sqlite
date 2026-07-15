@@ -50,10 +50,6 @@ FALSE_VALUES = frozenset(("False", "FALSE", "false"))
 
 _int_re = re.compile(r"^\s*[+-]?\d+\s*$")
 
-# SQLite stores integers as signed 64-bit
-SQLITE_MIN_INTEGER = -(2**63)
-SQLITE_MAX_INTEGER = 2**63 - 1
-
 
 def isnull(value):
     return value is None or (isinstance(value, float) and math.isnan(value))
@@ -179,16 +175,7 @@ def convert_column(raw_values, just_strings=False):
             [None if v is None else v in TRUE_VALUES for v in raw_values],
         )
     if all(_int_re.match(v) for v in non_null):
-        converted = [None if v is None else int(v) for v in raw_values]
-        if all(
-            v is None or SQLITE_MIN_INTEGER <= v <= SQLITE_MAX_INTEGER
-            for v in converted
-        ):
-            return "INTEGER", converted
-        # Too big for a SQLite 64-bit integer - converting to float would
-        # lose precision, so keep the original strings instead
-        # (1.3.1 crashed with an OverflowError here)
-        return "TEXT", raw_values
+        return "INTEGER", [None if v is None else int(v) for v in raw_values]
     try:
         converted = [None if v is None else _parse_float(v) for v in raw_values]
     except ValueError:
