@@ -604,6 +604,27 @@ def test_dates_custom_formats():
         assert expected == actual
 
 
+def test_unparseable_dates_left_unchanged():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("test.csv", "w").write(
+            "headline,date,datetime\n"
+            "Bad date,not-a-date,also-not-a-datetime\n"
+            "Empty date,,\n"
+        )
+        result = runner.invoke(
+            cli.cli, ["test.csv", "test.db", "-d", "date", "-dt", "datetime"]
+        )
+        assert result.exit_code == 0, result.output
+        conn = sqlite3.connect("test.db")
+        expected = [
+            ("Bad date", "not-a-date", "also-not-a-datetime"),
+            ("Empty date", None, None),
+        ]
+        actual = conn.execute("select * from test").fetchall()
+        assert expected == actual
+
+
 def test_extract_cols_no_fts():
     runner = CliRunner()
     with runner.isolated_filesystem():
