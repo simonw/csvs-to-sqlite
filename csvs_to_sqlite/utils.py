@@ -356,7 +356,7 @@ def to_sql_with_foreign_keys(
         create_sql += "\n" + "\n".join(index_bits)
     conn.executescript(create_sql)
     # Now that we have created the table, insert the rows:
-    df.to_sql(df.table_name, conn, if_exists="append", index=False)
+    df.to_sql(name, conn, if_exists="append", index=False)
 
 
 def best_fts_version():
