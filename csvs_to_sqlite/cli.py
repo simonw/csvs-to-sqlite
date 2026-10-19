@@ -198,7 +198,7 @@ def cli(
             df = load_csv(
                 path, separator, skip_errors, quoting, shape, just_strings=just_strings
             )
-            df.table_name = table or name
+            df.attrs["table_name"] = table or name
             if filename_column:
                 df[filename_column] = name
                 if shape:
@@ -243,26 +243,27 @@ def cli(
         conn, dataframes, foreign_keys, not no_fulltext_fks
     )
     for df in refactored:
+        table_name = df.attrs["table_name"]
         # This is a bit trickier because we need to
         # create the table with extra SQL for foreign keys
-        if replace_tables and table_exists(conn, df.table_name):
-            drop_table(conn, df.table_name)
-        if table_exists(conn, df.table_name):
-            df.to_sql(df.table_name, conn, if_exists="append", index=False)
+        if replace_tables and table_exists(conn, table_name):
+            drop_table(conn, table_name)
+        if table_exists(conn, table_name):
+            df.to_sql(table_name, conn, if_exists="append", index=False)
         else:
             to_sql_with_foreign_keys(
                 conn,
                 df,
-                df.table_name,
+                table_name,
                 foreign_keys,
                 sql_type_overrides,
                 primary_keys=primary_key,
                 index_fks=not no_index_fks,
             )
-            created_tables[df.table_name] = df
+            created_tables[table_name] = df
         if index:
             for index_defn in index:
-                add_index(conn, df.table_name, index_defn)
+                add_index(conn, table_name, index_defn)
 
     # Create FTS tables
     if fts:
