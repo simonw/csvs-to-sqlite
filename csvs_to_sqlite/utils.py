@@ -307,7 +307,10 @@ def get_create_table_sql(
         "select sql from sqlite_master where name = ?", [table_name]
     ).fetchone()[0]
     columns = [
-        row[1] for row in conn.execute("PRAGMA table_info([{}])".format(table_name))
+        row[1]
+        for row in conn.execute(
+            'PRAGMA table_info("{}")'.format(table_name.replace('"', '""'))
+        )
     ]
     if primary_keys:
         # Rewrite SQL to add PRIMARY KEY (col1, col2) at end

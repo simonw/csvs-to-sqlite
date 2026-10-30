@@ -6,6 +6,7 @@ import sys
 from io import StringIO
 import pathlib
 import sqlite3
+import pytest
 
 CSV = """county,precinct,office,district,party,candidate,votes
 Yolo,100001,President,,LIB,Gary Johnson,41
@@ -69,6 +70,22 @@ def test_flat():
             (string_types, int, string_types, int, string_types, string_types, int)
         ):
             assert isinstance(last_row[i], t)
+
+
+@pytest.mark.parametrize(
+    "table_name", ["[minimal_example]", 'quoted"name', "it's a table"]
+)
+def test_filename_with_sql_identifier_characters(table_name):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        filename = table_name + ".csv"
+        with open(filename, "w") as fp:
+            fp.write("a,b\n1,2\n")
+        result = runner.invoke(cli.cli, [filename, "test.db"])
+        assert result.exit_code == 0, result.output
+        with sqlite3.connect("test.db") as conn:
+            quoted_name = '"{}"'.format(table_name.replace('"', '""'))
+            assert conn.execute("select * from " + quoted_name).fetchall() == [(1, 2)]
 
 
 def test_extract_columns():
