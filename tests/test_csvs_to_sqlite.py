@@ -766,6 +766,21 @@ def test_just_strings_with_date_specified():
             assert isinstance(gross, text_type)
 
 
+CSV_BAD_DATE = """headline,date
+First headline,not-a-date
+"""
+
+
+def test_unparsable_date_is_usage_error():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("test.csv", "w").write(CSV_BAD_DATE)
+        result = runner.invoke(cli.cli, ["test.csv", "test.db", "-d", "date"])
+        assert result.exit_code == 2
+        assert "Could not parse date: 'not-a-date'" in result.output
+        assert "AttributeError" not in result.output
+
+
 def test_if_cog_needs_to_be_run():
     _stdout = sys.stdout
     sys.stdout = StringIO()
