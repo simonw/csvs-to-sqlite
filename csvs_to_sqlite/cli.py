@@ -188,11 +188,10 @@ def cli(
 
     db_existed = os.path.exists(dbname)
 
-    conn = sqlite3.connect(dbname)
-
     dataframes = []
     csvs = csvs_from_paths(paths)
     sql_type_overrides = None
+    missing_date_columns = set(date + datetime)
     for name, path in csvs.items():
         try:
             df = load_csv(
@@ -219,11 +218,20 @@ def cli(
                     if shape:
                         shape += ",{}".format(colname)
             sql_type_overrides = apply_shape(df, shape)
-            apply_dates_and_datetimes(df, date, datetime, datetime_format)
+            date_cols = [col for col in date if col in df.columns]
+            datetime_cols = [col for col in datetime if col in df.columns]
+            apply_dates_and_datetimes(df, date_cols, datetime_cols, datetime_format)
+            missing_date_columns.difference_update(date_cols, datetime_cols)
             dataframes.append(df)
         except LoadCsvError as e:
             click.echo("Could not load {}: {}".format(path, e), err=True)
 
+    if dataframes and missing_date_columns:
+        raise click.UsageError(
+            "Date or datetime columns not found in any CSV: {}".format(
+                ", ".join(sorted(missing_date_columns))
+            )
+        )
     click.echo("Loaded {} dataframes".format(len(dataframes)))
 
     # Use extract_columns to build a column:(table,label) dictionary
@@ -238,6 +246,7 @@ def cli(
             foreign_keys[bits[0]] = (bits[0], "value")
 
     # Now we have loaded the dataframes, we can refactor them
+    conn = sqlite3.connect(dbname)
     created_tables = {}
     refactored = refactor_dataframes(
         conn, dataframes, foreign_keys, not no_fulltext_fks
