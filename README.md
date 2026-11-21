@@ -32,6 +32,11 @@ search those directories for CSV files and create tables for each one.
 ```bash
 csvs-to-sqlite ~/path/to/directory all-my-csvs.db
 ```
+
+When importing multiple files, `--date` and `--datetime` convert a column in
+each file that contains it. Each requested column must appear in at least one
+of the imported files.
+
 ## Handling TSV (tab-separated values)
 
 You can use the `-s` option to specify a different delimiter. If you want

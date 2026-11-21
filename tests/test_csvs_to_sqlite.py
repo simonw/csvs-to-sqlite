@@ -2,6 +2,7 @@ from click.testing import CliRunner
 from csvs_to_sqlite import cli
 from six import string_types, text_type
 from cogapp import Cog
+from contextlib import closing
 import sys
 from io import StringIO
 import pathlib
@@ -587,6 +588,34 @@ def test_dates_and_datetimes():
         ]
         actual = conn.execute("select * from test").fetchall()
         assert expected == actual
+
+
+def test_date_columns_in_different_csvs(tmp_path):
+    events = tmp_path / "events.csv"
+    events.write_text("event,occurred_at\nLaunch,3 May 2017 18:30\n")
+    people = tmp_path / "people.csv"
+    people.write_text("name,birthday\nPat,4 April 1980\n")
+    db = tmp_path / "records.db"
+    result = CliRunner().invoke(
+        cli.cli,
+        [str(events), str(people), str(db), "-dt", "occurred_at", "-d", "birthday"],
+    )
+    assert result.exit_code == 0, result.exception
+    with closing(sqlite3.connect(db)) as conn:
+        assert conn.execute("select * from events").fetchall() == [
+            ("Launch", "2017-05-03T18:30:00")
+        ]
+        assert conn.execute("select * from people").fetchall() == [("Pat", "1980-04-04")]
+
+
+def test_date_column_missing_from_all_csvs(tmp_path):
+    events = tmp_path / "events.csv"
+    events.write_text("event,date\nLaunch,3 May 2017\n")
+    result = CliRunner().invoke(
+        cli.cli, [str(events), str(tmp_path / "events.db"), "-d", "date", "-dt", "typo"]
+    )
+    assert result.exit_code == 2
+    assert "not found in any CSV: typo" in result.output
 
 
 def test_dates_custom_formats():
