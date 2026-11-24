@@ -226,6 +226,12 @@ def cli(
 
     click.echo("Loaded {} dataframes".format(len(dataframes)))
 
+    if not dataframes:
+        conn.close()
+        if not db_existed and os.path.exists(dbname):
+            os.remove(dbname)
+        raise click.ClickException("Could not load any CSV files")
+
     # Use extract_columns to build a column:(table,label) dictionary
     foreign_keys = {}
     for col in extract_columns:

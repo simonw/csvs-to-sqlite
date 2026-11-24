@@ -4,6 +4,7 @@ from six import string_types, text_type
 from cogapp import Cog
 import sys
 from io import StringIO
+import os
 import pathlib
 import sqlite3
 
@@ -764,6 +765,27 @@ def test_just_strings_with_date_specified():
 
         for name, gross, dt in actual:
             assert isinstance(gross, text_type)
+
+
+def test_all_csvs_fail_to_load_exits_nonzero():
+    # https://github.com/simonw/csvs-to-sqlite/issues/105
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("bad.csv", "w").write("a,b\n1,2\n3,4,5\n")
+        result = runner.invoke(cli.cli, ["bad.csv", "test.db"])
+        assert result.exit_code != 0
+        assert not os.path.exists("test.db")
+
+
+def test_some_csvs_fail_to_load_still_succeeds():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        open("good.csv", "w").write("a,b\n1,2\n")
+        open("bad.csv", "w").write("a,b\n1,2\n3,4,5\n")
+        result = runner.invoke(cli.cli, ["good.csv", "bad.csv", "test.db"])
+        assert result.exit_code == 0
+        conn = sqlite3.connect("test.db")
+        assert conn.execute("select * from good").fetchall() == [(1, 2)]
 
 
 def test_if_cog_needs_to_be_run():
